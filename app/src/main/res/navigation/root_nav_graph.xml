@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_nav_graph"
+    app:startDestination="@id/home_page_nested_graph">
+
+    <navigation android:id="@+id/movie_info_nested_graph"
+        app:startDestination="@id/filmPageFragment">
+        <fragment
+            android:id="@+id/movieCrewListFragment"
+            android:name="com.example.lvl1final.presentation.common.MovieCrewListFragment"
+            android:label="MovieCrewListFragment" >
+            <action
+                android:id="@+id/action_movieCrewListFragment_to_actorPageFragment"
+                app:destination="@id/actorPageFragment" />
+        </fragment>
+        <fragment
+            android:id="@+id/filmPageFragment"
+            android:name="com.example.lvl1final.presentation.common.FilmPageFragment"
+            android:label="FilmPageFragment">
+            <action
+                android:id="@+id/action_filmPageFragment_self"
+                app:destination="@id/filmPageFragment"
+                app:popUpTo="@id/filmPageFragment"
+                app:popUpToInclusive="true"/>
+            <action
+                android:id="@+id/action_filmPageFragment_to_actorPageFragment"
+                app:destination="@id/actorPageFragment" />
+            <action
+                android:id="@+id/action_filmPageFragment_to_galleryFragment"
+                app:destination="@id/galleryFragment" />
+            <action
+                android:id="@+id/action_filmPageFragment_to_imageDialogFragment"
+                app:destination="@id/imageDialogFragment" />
+            <action
+                android:id="@+id/action_filmPageFragment_to_seasonsAndEpisodesFragment"
+                app:destination="@id/seasonsAndEpisodesFragment" />
+            <action
+                android:id="@+id/action_filmPageFragment_to_extraMenuBottomSheetFragment"
+                app:destination="@id/extraMenuBottomSheetFragment" />
+            <action
+                android:id="@+id/action_filmPageFragment_to_listPageFragment"
+                app:destination="@id/listPageFragment" />
+            <action
+                android:id="@+id/action_filmPageFragment_to_movieCrewListFragment"
+                app:destination="@id/movieCrewListFragment" />
+        </fragment>
+        <fragment
+            android:id="@+id/actorPageFragment"
+            android:name="com.example.lvl1final.presentation.common.ActorPageFragment"
+            android:label="ActorPageFragment">
+            <action
+                android:id="@+id/action_actorPageFragment_to_filmPageFragment"
+                app:destination="@id/filmPageFragment" />
+            <action
+                android:id="@+id/action_actorPageFragment_to_filmographyFragment"
+                app:destination="@id/filmographyFragment" />
+        </fragment>
+        <fragment
+            android:id="@+id/galleryFragment"
+            android:name="com.example.lvl1final.presentation.common.GalleryFragment"
+            android:label="GalleryFragment">
+            <action
+                android:id="@+id/action_galleryFragment_to_imageDialogFragment"
+                app:destination="@id/imageDialogFragment" />
+        </fragment>
+        <dialog
+            android:id="@+id/imageDialogFragment"
+            android:name="com.example.lvl1final.presentation.common.ImageDialogFragment"
+            android:label="fragment_image_dialog"
+            tools:layout="@layout/fragment_image_dialog" />
+        <fragment
+            android:id="@+id/filmographyFragment"
+            android:name="com.example.lvl1final.presentation.common.FilmographyFragment"
+            android:label="FilmographyFragment">
+            <action
+                android:id="@+id/action_filmographyFragment_to_filmPageFragment"
+                app:destination="@id/filmPageFragment" />
+        </fragment>
+        <fragment
+            android:id="@+id/seasonsAndEpisodesFragment"
+            android:name="com.example.lvl1final.presentation.common.SeasonsAndEpisodesFragment"
+            android:label="SeasonsAndEpisodesFragment" />
+        <dialog
+            android:id="@+id/extraMenuBottomSheetFragment"
+            android:name="com.example.lvl1final.presentation.common.ExtraMenuBottomSheetFragment"
+            android:label="fragment_extra_menu_bottom_sheet"
+            tools:layout="@layout/fragment_extra_menu_bottom_sheet">
+            <action
+                android:id="@+id/action_extraMenuBottomSheetFragment_to_createCollectionDialogFragment"
+                app:destination="@id/createCollectionDialogFragment" />
+        </dialog>
+
+    </navigation>
+    <navigation
+        android:id="@+id/home_page_nested_graph"
+        app:startDestination="@id/mainFragment">
+        <fragment
+            android:id="@+id/mainFragment"
+            android:name="com.example.lvl1final.presentation.home.HomeMainFragment"
+            android:label="fragment_main"
+            tools:layout="@layout/fragment_home_main">
+            <action
+                android:id="@+id/action_mainFragment_to_listPageFragment"
+                app:destination="@id/listPageFragment" />
+            <action
+                android:id="@+id/action_mainFragment_to_filmPageFragment"
+                app:destination="@id/movie_info_nested_graph" />
+        </fragment>
+    </navigation>
+    <navigation android:id="@+id/search_nested_graph"
+        app:startDestination="@id/searchMainFragment">
+        <fragment
+            android:id="@+id/searchMainFragment"
+            android:name="com.example.lvl1final.presentation.search.SearchMainFragment"
+            android:label="SearchMainFragment">
+            <action
+                android:id="@+id/action_searchMainFragment_to_searchSettingsFragment"
+                app:destination="@id/searchSettingsFragment" />
+            <action
+                android:id="@+id/action_searchMainFragment_to_movie_info_nested_graph"
+                app:destination="@id/movie_info_nested_graph" />
+        </fragment>
+        <fragment
+            android:id="@+id/searchSettingsFragment"
+            android:name="com.example.lvl1final.presentation.search.SearchSettingsFragment"
+            android:label="SearchSettingsFragment">
+            <action
+                android:id="@+id/action_searchSettingsFragment_to_countryGenreFilterFragment"
+                app:destination="@id/countryGenreFilterFragment" />
+            <action
+                android:id="@+id/action_searchSettingsFragment_to_dateFilterFragment"
+                app:destination="@id/dateFilterFragment" />
+            <action
+                android:id="@+id/action_searchSettingsFragment_to_searchMainFragment"
+                app:destination="@id/searchMainFragment" />
+        </fragment>
+        <fragment
+            android:id="@+id/dateFilterFragment"
+            android:name="com.example.lvl1final.presentation.search.DateFilterFragment"
+            android:label="DateFilterFragment" />
+        <fragment
+            android:id="@+id/countryGenreFilterFragment"
+            android:name="com.example.lvl1final.presentation.search.CountryGenreFilterFragment"
+            android:label="CountryGenreFilterFragment" />
+    </navigation>
+    <fragment
+        android:id="@+id/listPageFragment"
+        android:name="com.example.lvl1final.presentation.common.ListPageFragment"
+        android:label="ListPageFragment">
+        <action
+            android:id="@+id/action_listPageFragment_to_filmPageFragment"
+            app:destination="@id/movie_info_nested_graph" />
+    </fragment>
+    <dialog
+        android:id="@+id/createCollectionDialogFragment"
+        android:name="com.example.lvl1final.presentation.common.CreateCollectionDialogFragment"
+        android:label="fragment_create_collection_dialog"
+        tools:layout="@layout/fragment_create_collection_dialog" />
+    <navigation android:id="@+id/profile_nested_graph"
+        app:startDestination="@id/profileMainFragment">
+        <fragment
+            android:id="@+id/profileMainFragment"
+            android:name="com.example.lvl1final.presentation.profile.ProfileMainFragment"
+            android:label="ProfileMainFragment">
+            <action
+                android:id="@+id/action_profileMainFragment_to_movie_info_nested_graph"
+                app:destination="@id/movie_info_nested_graph" />
+            <action
+                android:id="@+id/action_profileMainFragment_to_listPageFragment"
+                app:destination="@id/listPageFragment" />
+            <action
+                android:id="@+id/action_profileMainFragment_to_createCollectionDialogFragment"
+                app:destination="@id/createCollectionDialogFragment" />
+        </fragment>
+    </navigation>
+
+</navigation>

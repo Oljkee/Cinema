@@ -1,0 +1,94 @@
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    app:cardElevation="0dp"
+    app:cardUseCompatPadding="true"
+    app:contentPadding="1dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginHorizontal="15dp"
+        android:baselineAligned="true"
+        android:orientation="horizontal">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardView_movie_poster"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:cardElevation="0dp"
+            android:layout_gravity="center"
+            app:cardCornerRadius="5dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/imgView_movie_poster"
+                android:layout_width="96dp"
+                android:layout_height="132dp"
+                android:layout_gravity="center_horizontal"
+                android:foregroundGravity="center_horizontal"
+                android:scaleType="centerCrop"
+                tools:background="@tools:sample/backgrounds/scenic"
+                android:contentDescription="@string/poster_description" />
+        </androidx.cardview.widget.CardView>
+
+
+        <TextView
+            android:id="@+id/textview_rating"
+            style="@style/WhiteOvalRatingTextViewStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:ellipsize="end"
+            android:layout_marginStart="2dp"
+            android:layout_marginTop="2dp"
+            android:paddingHorizontal="5dp"
+            android:paddingVertical="1dp"
+            android:textSize="8sp"
+            app:layout_constraintStart_toStartOf="@+id/cardView_movie_poster"
+            app:layout_constraintTop_toTopOf="@+id/cardView_movie_poster"
+            tools:ignore="SmallSp"
+            tools:text="8.2" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:baselineAligned="true"
+            android:layout_marginStart="15dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="@+id/cardView_movie_poster"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/cardView_movie_poster"
+            app:layout_constraintTop_toTopOf="@+id/cardView_movie_poster">
+
+            <TextView
+                android:id="@+id/textview_movie_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/app_theme_black"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="Топи" />
+
+            <TextView
+                android:id="@+id/textview_year_genre"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/app_theme_grey"
+                android:textSize="12sp"
+                tools:text="2021, триллер" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>
