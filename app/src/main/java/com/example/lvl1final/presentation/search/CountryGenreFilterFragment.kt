@@ -11,9 +11,9 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.lvl1final.R
-import com.example.lvl1final.data.api.CountryDto
-import com.example.lvl1final.data.api.GenreDto
 import com.example.lvl1final.databinding.FragmentCountryGenreFilterBinding
+import com.example.lvl1final.domain.models.movieimpl.CountryImpl
+import com.example.lvl1final.domain.models.movieimpl.GenreImpl
 import com.example.lvl1final.presentation.Arguments
 import com.example.lvl1final.presentation.DataStoreViewModel
 import com.example.lvl1final.presentation.MainViewModel
@@ -25,8 +25,8 @@ class CountryGenreFilterFragment : Fragment() {
     private var _binding: FragmentCountryGenreFilterBinding? = null
     private val binding get() = _binding!!
     private val countryListAdapter =
-        CountryListAdapter { countryDto -> setCountryTempValues(countryDto) }
-    private val genreListAdapter = GenreListAdapter { genreDto -> setGenreTempValues(genreDto) }
+        CountryListAdapter { country -> setCountryTempValues(country) }
+    private val genreListAdapter = GenreListAdapter { genre -> setGenreTempValues(genre) }
     private var listType: String = ""
 
 
@@ -52,8 +52,8 @@ class CountryGenreFilterFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        var countryList: List<CountryDto> = emptyList()
-        var genreList: List<GenreDto> = emptyList()
+        var countryList: List<CountryImpl> = emptyList()
+        var genreList: List<GenreImpl> = emptyList()
         binding.apply {
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.countriesAndGenres.collect { data ->
@@ -86,13 +86,13 @@ class CountryGenreFilterFragment : Fragment() {
 //                                    delay(500)
                                     val query = s.toString()
                                     if (listType == Arguments.ARG_COUNTRY_LIST) {
-                                        val filteredList = countryList.filter { countryDto ->
-                                            countryDto.country.contains(query, ignoreCase = true)
+                                        val filteredList = countryList.filter { countryImpl ->
+                                            countryImpl.country.contains(query, ignoreCase = true)
                                         }
                                         countryListAdapter.submitList(filteredList)
                                     } else {
-                                        val filteredList = genreList.filter { genreDto ->
-                                            genreDto.genre.contains(query, ignoreCase = true)
+                                        val filteredList = genreList.filter { genre ->
+                                            genre.genre.contains(query, ignoreCase = true)
                                         }
                                         genreListAdapter.submitList(filteredList)
                                     }
@@ -113,13 +113,13 @@ class CountryGenreFilterFragment : Fragment() {
         }
     }
 
-    private fun setCountryTempValues(countryDto: CountryDto) {
-        dataStoreViewModel.setCountryTempValues(countryDto)
+    private fun setCountryTempValues(country: CountryImpl) {
+        dataStoreViewModel.setCountryTempValues(country)
         findNavController().popBackStack()
     }
 
-    private fun setGenreTempValues(genreDto: GenreDto) {
-        dataStoreViewModel.setGenreTempValues(genreDto)
+    private fun setGenreTempValues(genre: GenreImpl) {
+        dataStoreViewModel.setGenreTempValues(genre)
         findNavController().popBackStack()
     }
 

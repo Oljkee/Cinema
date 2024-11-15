@@ -12,8 +12,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.lvl1final.R
-import com.example.lvl1final.data.api.ImageDto
 import com.example.lvl1final.databinding.FragmentGalleryBinding
+import com.example.lvl1final.domain.models.movieimpl.ImageImpl
 import com.example.lvl1final.presentation.Arguments
 import com.example.lvl1final.presentation.MainViewModel
 import com.google.android.material.chip.Chip
@@ -28,7 +28,7 @@ class GalleryFragment : Fragment() {
     private val binding get() = _binding!!
     private val galleryListAdapter = GalleryListAdapter { image -> onGalleryItemClick(image) }
     private val bundle = Bundle()
-    private var firstNotEmptyImageList: StateFlow<List<ImageDto>>? = null
+    private var firstNotEmptyImageList: StateFlow<List<ImageImpl>>? = null
 
 
     override fun onCreateView(
@@ -48,97 +48,60 @@ class GalleryFragment : Fragment() {
             recyclerViewImages.layoutManager =
                 StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL)
 
-            setNewChipWithClickListener(
-                viewModel.movieStillImages,
-                getString(R.string.still),
-                chipGroupImages,
-                recyclerViewImages
-            )
-            setNewChipWithClickListener(
-                viewModel.movieShootingImages,
-                getString(R.string.shooting),
-                chipGroupImages,
-                recyclerViewImages
-            )
-            setNewChipWithClickListener(
-                viewModel.moviePosterImages,
-                getString(R.string.poster),
-                chipGroupImages,
-                recyclerViewImages
-            )
-            setNewChipWithClickListener(
-                viewModel.movieFanArtImages,
-                getString(R.string.fan_art),
-                chipGroupImages,
-                recyclerViewImages
-            )
-            setNewChipWithClickListener(
-                viewModel.moviePromoImages,
-                getString(R.string.promo),
-                chipGroupImages,
-                recyclerViewImages
-            )
-            setNewChipWithClickListener(
-                viewModel.movieConceptImages,
-                getString(R.string.concept),
-                chipGroupImages,
-                recyclerViewImages
-            )
-            setNewChipWithClickListener(
-                viewModel.movieWallpaperImages,
-                getString(R.string.wallpaper),
-                chipGroupImages,
-                recyclerViewImages
-            )
-            setNewChipWithClickListener(
-                viewModel.movieCoverImages,
-                getString(R.string.cover),
-                chipGroupImages,
-                recyclerViewImages
-            )
-            setNewChipWithClickListener(
-                viewModel.movieScreenshotImages,
-                getString(R.string.screenshot),
-                chipGroupImages,
-                recyclerViewImages
-            )
-
             viewLifecycleOwner.lifecycleScope.launch {
-                firstNotEmptyImageList?.collectLatest { list ->
-                    recyclerViewImages.adapter = galleryListAdapter
-                    galleryListAdapter.submitList(list)
+                viewModel.allMovieImages.collectLatest { imageMap ->
+                    imageMap.forEach { (imageType, imageList) ->
+                        setNewChipWithClickListener(
+                            imageList,
+                            imageType.toLocalizedString(),
+                            chipGroupImages,
+                            recyclerViewImages
+                        )
+                    }
+                    if (chipGroupImages.childCount > 0) {
+                        val firstChip = chipGroupImages.getChildAt(0) as Chip
+                        firstChip.performClick()
+                    }
                 }
             }
         }
     }
 
-    private fun onGalleryItemClick(image: ImageDto) {
+    private fun onGalleryItemClick(image: ImageImpl) {
         bundle.putString(Arguments.ARG_GALLERY_IMAGE_URL, image.imageUrl)
         findNavController().navigate(R.id.action_galleryFragment_to_imageDialogFragment, bundle)
     }
 
 
     private fun setNewChipWithClickListener(
-        stateFlow: StateFlow<List<ImageDto>>,
+        list: List<ImageImpl>,
         chipText: String,
         chipGroup: ChipGroup,
         recyclerViewImages: RecyclerView
     ) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            stateFlow.collectLatest { list ->
-                if (list.isNotEmpty()) {
-                    if (firstNotEmptyImageList == null) {
-                        firstNotEmptyImageList = stateFlow
-                    }
-                    val chip = Chip(context)
-                    chip.text = chipText
-                    chip.setOnClickListener {
-                        recyclerViewImages.adapter = galleryListAdapter
-                        galleryListAdapter.submitList(list)
-                    }
-                    chipGroup.addView(chip)
-                }
+        if (list.isNotEmpty()) {
+            val chip = Chip(context)
+            chip.text = chipText
+            chip.setOnClickListener {
+                recyclerViewImages.adapter = galleryListAdapter
+                galleryListAdapter.submitList(list)
             }
+            chipGroup.addView(chip)
+        }
+    }
+
+    fun String.toLocalizedString(): String {
+        return when (this) {
+            Arguments.MOVIE_IMAGES_TYPE_STILL -> getString(R.string.still)
+            Arguments.MOVIE_IMAGES_TYPE_SHOOTING -> getString(R.string.shooting)
+            Arguments.MOVIE_IMAGES_TYPE_POSTER -> getString(R.string.poster)
+            Arguments.MOVIE_IMAGES_TYPE_FAN_ART -> getString(R.string.fan_art)
+            Arguments.MOVIE_IMAGES_TYPE_PROMO -> getString(R.string.promo)
+            Arguments.MOVIE_IMAGES_TYPE_CONCEPT -> getString(R.string.concept)
+            Arguments.MOVIE_IMAGES_TYPE_WALLPAPER -> getString(R.string.wallpaper)
+            Arguments.MOVIE_IMAGES_TYPE_COVER -> getString(R.string.cover)
+            Arguments.MOVIE_IMAGES_TYPE_SCREENSHOT -> getString(R.string.screenshot)
+            else -> this
         }
     }
 }

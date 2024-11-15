@@ -10,8 +10,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.lvl1final.R
-import com.example.lvl1final.data.api.FilmDto
 import com.example.lvl1final.databinding.FragmentFilmographyBinding
+import com.example.lvl1final.domain.models.movieimpl.FilmImpl
 import com.example.lvl1final.presentation.Arguments
 import com.example.lvl1final.presentation.MainViewModel
 import com.google.android.material.chip.Chip
@@ -23,7 +23,7 @@ class FilmographyFragment : Fragment() {
     private var _binding: FragmentFilmographyBinding? = null
     private val binding get() = _binding!!
     private val movieListAdapter = FilmographyMovieListAdapter { film -> onItemClick(film) }
-    private var firstNotEmptyFilmList: List<FilmDto>? = null
+    private var firstNotEmptyFilmList: List<FilmImpl>? = null
 
 
     override fun onCreateView(
@@ -52,7 +52,7 @@ class FilmographyFragment : Fragment() {
                                 val distinctList = films.distinctBy { film -> film.filmId }
                                 Log.d("Actor", "all: ${distinctList.size}")
 
-                                val groupedMap: Map<String, List<FilmDto>> =
+                                val groupedMap: Map<String, List<FilmImpl>> =
                                     distinctList.groupBy { it.professionKey }
                                 for (key in groupedMap.keys) {
                                     val movieListForProfession = groupedMap[key]
@@ -172,7 +172,7 @@ class FilmographyFragment : Fragment() {
         }
     }
 
-    private fun onItemClick(film: FilmDto) {
+    private fun onItemClick(film: FilmImpl) {
         val id = film.filmId
         viewModel.getMovieData(id)
         findNavController().navigate(R.id.action_filmographyFragment_to_filmPageFragment)

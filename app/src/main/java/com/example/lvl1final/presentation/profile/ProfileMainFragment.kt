@@ -10,7 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.lvl1final.R
 import com.example.lvl1final.databinding.FragmentProfileMainBinding
-import com.example.lvl1final.data.entity.MoviesCollection
+import com.example.lvl1final.domain.models.collection.MoviesCollection
 import com.example.lvl1final.presentation.Arguments
 import com.example.lvl1final.presentation.MainViewModel
 import com.example.lvl1final.presentation.common.InterestingMovieListAdapter

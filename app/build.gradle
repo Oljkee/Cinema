@@ -27,6 +27,8 @@ android {
                         "room.expandProjection": "true"]
             }
         }
+
+        buildConfigField "String", "BASE_URL", '"https://kinopoiskapiunofficial.tech/"'
     }
 
     buildTypes {

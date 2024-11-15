@@ -7,19 +7,50 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.example.lvl1final.R
-import com.example.lvl1final.data.api.*
-import com.example.lvl1final.domain.CreateNewCollectionUseCase
-import com.example.lvl1final.data.entity.CollectionMovie
-import com.example.lvl1final.data.entity.CollectionWithMovies
-import com.example.lvl1final.data.entity.FilterParameters
-import com.example.lvl1final.data.entity.InterestingMovie
-import com.example.lvl1final.data.entity.KinopoiskMovie
-import com.example.lvl1final.data.entity.MoviesCollection
-import com.example.lvl1final.data.entity.WatchedMovie
-import com.example.lvl1final.domain.*
+import com.example.lvl1final.domain.models.collection.CollectionMovie
+import com.example.lvl1final.domain.models.collection.CollectionWithMovies
+import com.example.lvl1final.domain.models.collection.InterestingMovie
+import com.example.lvl1final.domain.models.collection.KinopoiskMovie
+import com.example.lvl1final.domain.models.movie.FilterParameters
+import com.example.lvl1final.domain.models.collection.MoviesCollection
+import com.example.lvl1final.domain.models.collection.WatchedMovie
+import com.example.lvl1final.domain.models.movieimpl.ActorImpl
+import com.example.lvl1final.domain.models.movieimpl.CountryImpl
+import com.example.lvl1final.domain.models.movie.FullMovieData
+import com.example.lvl1final.domain.models.movieimpl.GenreImpl
+import com.example.lvl1final.domain.models.movieimpl.ImageImpl
+import com.example.lvl1final.domain.models.movieimpl.KinopoiskMovieSelectionFiltersImpl
+import com.example.lvl1final.domain.models.movieimpl.MovieImpl
+import com.example.lvl1final.domain.models.movieimpl.MovieStaffImpl
+import com.example.lvl1final.domain.usecase.CreateNewCollectionUseCase
+import com.example.lvl1final.domain.usecase.CheckMovieInWatchedCollectionUseCase
+import com.example.lvl1final.domain.usecase.DeleteCollectionUseCase
+import com.example.lvl1final.domain.usecase.DeleteMovieFromCollectionUseCase
+import com.example.lvl1final.domain.usecase.DeleteMovieFromWatchedCollectionUseCase
+import com.example.lvl1final.domain.usecase.GetActorInfoUseCase
+import com.example.lvl1final.domain.usecase.GetCollectionIdUseCase
+import com.example.lvl1final.domain.usecase.GetCollectionListUseCase
+import com.example.lvl1final.domain.usecase.GetCollectionListWithThisMovieUseCase
+import com.example.lvl1final.domain.usecase.GetCollectionWithMoviesUseCase
+import com.example.lvl1final.domain.usecase.GetCountriesAndGenresUseCase
+import com.example.lvl1final.domain.usecase.GetInterestingCollectionListUseCase
+import com.example.lvl1final.domain.usecase.GetAllMovieImagesUseCase
+import com.example.lvl1final.domain.usecase.GetDefaultSearchFilterParametersUseCase
+import com.example.lvl1final.domain.usecase.GetMovieDataUseCase
+import com.example.lvl1final.domain.usecase.GetMovieSelectionFiltersUseCase
+import com.example.lvl1final.domain.usecase.GetPremieresUseCase
+import com.example.lvl1final.domain.usecase.GetSelectionMoviesUseCase
+import com.example.lvl1final.domain.usecase.GetSeriesUseCase
+import com.example.lvl1final.domain.usecase.GetTopMoviesUseCase
+import com.example.lvl1final.domain.usecase.GetWatchedCollectionListUseCase
+import com.example.lvl1final.domain.usecase.InsertMovieToCollectionUseCase
+import com.example.lvl1final.domain.usecase.InsertMovieToInterestingCollectionUseCase
+import com.example.lvl1final.domain.usecase.InsertMovieToWatchedCollectionUseCase
+import com.example.lvl1final.domain.usecase.SearchMovieUseCase
 import com.example.lvl1final.presentation.common.MoviePagingSource
 import com.example.lvl1final.presentation.search.MovieSearchPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -30,66 +61,49 @@ class MainViewModel @Inject constructor(
     private val deleteCollectionUseCase: DeleteCollectionUseCase,
     private val getCollectionListWithThisMovieUseCase: GetCollectionListWithThisMovieUseCase,
     private val insertMovieToCollectionUseCase: InsertMovieToCollectionUseCase,
+    private val insertMovieToWatchedCollectionUseCase: InsertMovieToWatchedCollectionUseCase,
+    private val insertMovieToInterestingCollectionUseCase: InsertMovieToInterestingCollectionUseCase,
     private val deleteMovieFromCollectionUseCase: DeleteMovieFromCollectionUseCase,
+    private val deleteMovieFromWatchedCollectionUseCase: DeleteMovieFromWatchedCollectionUseCase,
     private val getCollectionListUseCase: GetCollectionListUseCase,
+    private val getWatchedCollectionListUseCase: GetWatchedCollectionListUseCase,
+    private val getInterestingCollectionListUseCase: GetInterestingCollectionListUseCase,
     private val getCollectionIdUseCase: GetCollectionIdUseCase,
     private val getCollectionWithMoviesUseCase: GetCollectionWithMoviesUseCase,
     private val checkMovieInWatchedCollectionUseCase: CheckMovieInWatchedCollectionUseCase,
     private val searchMovieUseCase: SearchMovieUseCase,
     private val getActorInfoUseCase: GetActorInfoUseCase,
-    private val getSeasonsAndEpisodesUseCase: GetSeasonsAndEpisodesUseCase,
-    private val getSimilarMoviesUseCase: GetSimilarMoviesUseCase,
-    private val getMovieImagesUseCase: GetMovieImagesUseCase,
-    private val getMovieStaffInfoUseCase: GetMovieStaffInfoUseCase,
-    private val getMovieInfoUseCase: GetMovieInfoUseCase,
+    private val getAllMovieImagesUseCase: GetAllMovieImagesUseCase,
     private val getSeriesUseCase: GetSeriesUseCase,
     private val getTopMoviesUseCase: GetTopMoviesUseCase,
     private val getSelectionMoviesUseCase: GetSelectionMoviesUseCase,
+    private val getCountriesAndGenresUseCase: GetCountriesAndGenresUseCase,
     private val getMovieSelectionFiltersUseCase: GetMovieSelectionFiltersUseCase,
-    private val getPremieresUseCase: GetPremieresUseCase
+    private val getPremieresUseCase: GetPremieresUseCase,
+    private val getMovieDataUseCase: GetMovieDataUseCase,
+    private val getDefaultSearchFilterParametersUseCase: GetDefaultSearchFilterParametersUseCase
 ) : ViewModel() {
 
-    private val _firstSelectionCountry = MutableStateFlow<CountryDto?>(null)
+    private val _firstSelectionCountry = MutableStateFlow<CountryImpl?>(null)
     val firstSelectionCountry = _firstSelectionCountry.asStateFlow()
 
-    private val _firstSelectionGenre = MutableStateFlow<GenreDto?>(null)
+    private val _firstSelectionGenre = MutableStateFlow<GenreImpl?>(null)
     val firstSelectionGenre = _firstSelectionGenre.asStateFlow()
 
-    private val _secondSelectionCountry = MutableStateFlow<CountryDto?>(null)
+    private val _secondSelectionCountry = MutableStateFlow<CountryImpl?>(null)
     val secondSelectionCountry = _secondSelectionCountry.asStateFlow()
 
-    private val _secondSelectionGenre = MutableStateFlow<GenreDto?>(null)
+    private val _secondSelectionGenre = MutableStateFlow<GenreImpl?>(null)
     val secondSelectionGenre = _secondSelectionGenre.asStateFlow()
 
-    private val _movieStillImages = MutableStateFlow<List<ImageDto>>(emptyList())
-    val movieStillImages = _movieStillImages.asStateFlow()
+    private val _allMovieImages = MutableStateFlow<Map<String, List<ImageImpl>>>(emptyMap())
+    val allMovieImages = _allMovieImages.asStateFlow()
 
-    private val _movieShootingImages = MutableStateFlow<List<ImageDto>>(emptyList())
-    val movieShootingImages = _movieShootingImages.asStateFlow()
+    private val _moviePageImages = MutableStateFlow<List<ImageImpl>?>(null)
+    val moviePageImages = _moviePageImages.asStateFlow()
 
-    private val _moviePosterImages = MutableStateFlow<List<ImageDto>>(emptyList())
-    val moviePosterImages = _moviePosterImages.asStateFlow()
-
-    private val _movieFanArtImages = MutableStateFlow<List<ImageDto>>(emptyList())
-    val movieFanArtImages = _movieFanArtImages.asStateFlow()
-
-    private val _moviePromoImages = MutableStateFlow<List<ImageDto>>(emptyList())
-    val moviePromoImages = _moviePromoImages.asStateFlow()
-
-    private val _movieConceptImages = MutableStateFlow<List<ImageDto>>(emptyList())
-    val movieConceptImages = _movieConceptImages.asStateFlow()
-
-    private val _movieWallpaperImages = MutableStateFlow<List<ImageDto>>(emptyList())
-    val movieWallpaperImages = _movieWallpaperImages.asStateFlow()
-
-    private val _movieCoverImages = MutableStateFlow<List<ImageDto>>(emptyList())
-    val movieCoverImages = _movieCoverImages.asStateFlow()
-
-    private val _movieScreenshotImages = MutableStateFlow<List<ImageDto>>(emptyList())
-    val movieScreenshotImages = _movieScreenshotImages.asStateFlow()
-
-    private val _movieImagesTypeIsNotNull = MutableStateFlow<List<ImageDto>?>(null)
-    val movieImagesTypeIsNotNull = _movieImagesTypeIsNotNull.asStateFlow()
+    private val _movieData = MutableStateFlow<FullMovieData?>(null)
+    val movieData = _movieData.asStateFlow()
 
     private val _firstSelectionMoviesFiltersLoaded = MutableStateFlow(false)
     val firstSelectionMoviesFiltersLoaded = _firstSelectionMoviesFiltersLoaded.asStateFlow()
@@ -97,32 +111,20 @@ class MainViewModel @Inject constructor(
     private val _secondSelectionMoviesFiltersLoaded = MutableStateFlow(false)
     val secondSelectionMoviesFiltersLoaded = _secondSelectionMoviesFiltersLoaded.asStateFlow()
 
-    private val _premieres = MutableStateFlow<List<MovieDto>>(emptyList())
+    private val _premieres = MutableStateFlow<List<MovieImpl>>(emptyList())
     val premieres = _premieres.asStateFlow()
 
-    private val _movieInfo = MutableStateFlow<KinopoiskMovieInfoDto?>(null)
-    val movieInfo = _movieInfo.asStateFlow()
-
-    private val _movieStaffInfo = MutableStateFlow<List<MovieStaffDto>?>(null)
-    val movieStaffInfo = _movieStaffInfo.asStateFlow()
-
-    private val _similarMovies = MutableStateFlow<List<SimilarMoviesItemDto>>(emptyList())
-    val similarMovies = _similarMovies.asStateFlow()
-
-    private val _seasonsAndEpisodes = MutableStateFlow<SeasonsAndEpisodesDto?>(null)
-    val seasonsAndEpisodes = _seasonsAndEpisodes.asStateFlow()
-
-    private val _actorInfo = MutableStateFlow<ActorInfoDto?>(null)
+    private val _actorInfo = MutableStateFlow<ActorImpl?>(null)
     val actorInfo = _actorInfo.asStateFlow()
 
-    private val _movieCrewList = MutableStateFlow<List<MovieStaffDto>>(emptyList())
+    private val _movieCrewList = MutableStateFlow<List<MovieStaffImpl>>(emptyList())
     val movieCrewList = _movieCrewList.asStateFlow()
 
-    fun setMovieCrewList(list: List<MovieStaffDto>) {
+    fun setMovieCrewList(list: List<MovieStaffImpl>) {
         _movieCrewList.value = list
     }
 
-    val previewPagedPopularMovies: Flow<PagingData<MovieDto>> = Pager(
+    val previewPagedPopularMovies: Flow<PagingData<MovieImpl>> = Pager(
         config = PagingConfig(pageSize = 5, enablePlaceholders = false, initialLoadSize = 20),
         pagingSourceFactory = {
             MoviePagingSource(
@@ -135,7 +137,7 @@ class MainViewModel @Inject constructor(
         }
     ).flow.cachedIn(viewModelScope)
 
-    val pagedPopularMovies: Flow<PagingData<MovieDto>> = Pager(
+    val pagedPopularMovies: Flow<PagingData<MovieImpl>> = Pager(
         config = PagingConfig(pageSize = 5, enablePlaceholders = true, initialLoadSize = 20),
         pagingSourceFactory = {
             MoviePagingSource(
@@ -148,7 +150,7 @@ class MainViewModel @Inject constructor(
     ).flow.cachedIn(viewModelScope)
 
 
-    val previewPagedTop250Movies: Flow<PagingData<MovieDto>> = Pager(
+    val previewPagedTop250Movies: Flow<PagingData<MovieImpl>> = Pager(
         config = PagingConfig(pageSize = 5, enablePlaceholders = true, initialLoadSize = 20),
         pagingSourceFactory = {
             MoviePagingSource(
@@ -161,7 +163,7 @@ class MainViewModel @Inject constructor(
         }
     ).flow.cachedIn(viewModelScope)
 
-    val pagedTop250Movies: Flow<PagingData<MovieDto>> = Pager(
+    val pagedTop250Movies: Flow<PagingData<MovieImpl>> = Pager(
         config = PagingConfig(pageSize = 5, enablePlaceholders = true, initialLoadSize = 20),
         pagingSourceFactory = {
             MoviePagingSource(
@@ -181,64 +183,21 @@ class MainViewModel @Inject constructor(
 
     private fun getSelectionFilters() {
         viewModelScope.launch {
-            val countriesAndGenres = getMovieSelectionFiltersUseCase()
-            val countryFullList = countriesAndGenres.countries.shuffled()
-            val genreFullList = countriesAndGenres.genres.shuffled()
+            val countryGenrePairList = getMovieSelectionFiltersUseCase()
+            val firstCountryGenrePairList = countryGenrePairList[0]
+            val secondCountryGenrePairList = countryGenrePairList[1]
 
-            viewModelScope.launch {
-                val countries = countryFullList.take(countryFullList.size / 2)
-                val genres = genreFullList.take(genreFullList.size / 2)
-                var kinopoiskSelectionMoviesDto: KinopoiskSelectionMoviesDto
-                var index = 0
-                do {
-                    val country = countries[index]
-                    val genre = genres[index]
-                    kinopoiskSelectionMoviesDto = getSelectionMoviesUseCase(
-                        countries = country.id!!,
-                        genres = genre.id!!,
-                        page = 1
-                    )
+            _firstSelectionCountry.value = firstCountryGenrePairList.first
+            _firstSelectionGenre.value = firstCountryGenrePairList.second
+            _firstSelectionMoviesFiltersLoaded.value = true
 
-                    if (kinopoiskSelectionMoviesDto.total > 0) {
-                        _firstSelectionCountry.value = countries[index]
-                        _firstSelectionGenre.value = genres[index]
-                        break
-                    }
-
-                    index++
-                } while (true)
-                _firstSelectionMoviesFiltersLoaded.value = true
-            }
-
-            viewModelScope.launch {
-                val countries = countryFullList.takeLast(countryFullList.size / 2)
-                val genres = genreFullList.takeLast(genreFullList.size / 2)
-                var kinopoiskSelectionMoviesDto: KinopoiskSelectionMoviesDto
-                var index = 0
-                do {
-                    val country = countries[index]
-                    val genre = genres[index]
-
-                    kinopoiskSelectionMoviesDto = getSelectionMoviesUseCase(
-                        countries = country.id!!,
-                        genres = genre.id!!,
-                        page = 1
-                    )
-
-                    if (kinopoiskSelectionMoviesDto.total > 0) {
-                        _secondSelectionCountry.value = countries[index]
-                        _secondSelectionGenre.value = genres[index]
-                        break
-                    }
-
-                    index++
-                } while (true)
-                _secondSelectionMoviesFiltersLoaded.value = true
-            }
+            _secondSelectionCountry.value = secondCountryGenrePairList.first
+            _secondSelectionGenre.value = secondCountryGenrePairList.second
+            _secondSelectionMoviesFiltersLoaded.value = true
         }
     }
 
-    val previewFirstSelectionMovies: Flow<PagingData<MovieDto>> = Pager(
+    val previewFirstSelectionMovies: Flow<PagingData<MovieImpl>> = Pager(
         config = PagingConfig(pageSize = 5, enablePlaceholders = true, initialLoadSize = 20),
         pagingSourceFactory = {
             MoviePagingSource(
@@ -253,7 +212,7 @@ class MainViewModel @Inject constructor(
         }
     ).flow.cachedIn(viewModelScope)
 
-    val firstSelectionMovies: Flow<PagingData<MovieDto>> = Pager(
+    val firstSelectionMovies: Flow<PagingData<MovieImpl>> = Pager(
         config = PagingConfig(pageSize = 5, enablePlaceholders = true, initialLoadSize = 20),
         pagingSourceFactory = {
             MoviePagingSource(
@@ -267,7 +226,7 @@ class MainViewModel @Inject constructor(
         }
     ).flow.cachedIn(viewModelScope)
 
-    val previewSecondSelectionMovies: Flow<PagingData<MovieDto>> = Pager(
+    val previewSecondSelectionMovies: Flow<PagingData<MovieImpl>> = Pager(
         config = PagingConfig(pageSize = 5, enablePlaceholders = true, initialLoadSize = 20),
         pagingSourceFactory = {
             MoviePagingSource(
@@ -282,7 +241,7 @@ class MainViewModel @Inject constructor(
         }
     ).flow.cachedIn(viewModelScope)
 
-    val secondSelectionMovies: Flow<PagingData<MovieDto>> = Pager(
+    val secondSelectionMovies: Flow<PagingData<MovieImpl>> = Pager(
         config = PagingConfig(pageSize = 5, enablePlaceholders = true, initialLoadSize = 20),
         pagingSourceFactory = {
             MoviePagingSource(
@@ -296,7 +255,7 @@ class MainViewModel @Inject constructor(
         }
     ).flow.cachedIn(viewModelScope)
 
-    val previewPagedTvSeries: Flow<PagingData<MovieDto>> = Pager(
+    val previewPagedTvSeries: Flow<PagingData<MovieImpl>> = Pager(
         config = PagingConfig(pageSize = 5, enablePlaceholders = true, initialLoadSize = 20),
         pagingSourceFactory = {
             MoviePagingSource(
@@ -309,7 +268,7 @@ class MainViewModel @Inject constructor(
         }
     ).flow.cachedIn(viewModelScope)
 
-    val pagedTvSeries: Flow<PagingData<MovieDto>> = Pager(
+    val pagedTvSeries: Flow<PagingData<MovieImpl>> = Pager(
         config = PagingConfig(pageSize = 5, enablePlaceholders = true, initialLoadSize = 20),
         pagingSourceFactory = {
             MoviePagingSource(
@@ -321,91 +280,18 @@ class MainViewModel @Inject constructor(
         }
     ).flow.cachedIn(viewModelScope)
 
-    private fun getMovieInfo(kinopoiskId: Int) {
-        viewModelScope.launch {
-            _movieInfo.value = getMovieInfoUseCase(kinopoiskId)
-        }
-    }
-
-    private fun getMovieStaffInfo(filmId: Int) {
-        viewModelScope.launch {
-            _movieStaffInfo.value = getMovieStaffInfoUseCase(filmId)
-        }
-    }
-
-    private fun getSimilarMovies(id: Int) {
-        viewModelScope.launch {
-            _similarMovies.value = getSimilarMoviesUseCase(id = id)
-        }
-    }
-
-    private fun getMovieStillImages(id: Int) =
-        setValue(_movieStillImages, id, Arguments.MOVIE_IMAGES_TYPE_STILL)
-
-    private fun getMovieShootingImages(id: Int) =
-        setValue(_movieShootingImages, id, Arguments.MOVIE_IMAGES_TYPE_SHOOTING)
-
-    private fun getMoviePosterImages(id: Int) =
-        setValue(_moviePosterImages, id, Arguments.MOVIE_IMAGES_TYPE_POSTER)
-
-    private fun getMovieFanArtImages(id: Int) =
-        setValue(_movieFanArtImages, id, Arguments.MOVIE_IMAGES_TYPE_FAN_ART)
-
-    private fun getMoviePromoImages(id: Int) =
-        setValue(_moviePromoImages, id, Arguments.MOVIE_IMAGES_TYPE_PROMO)
-
-    private fun getMovieConceptImages(id: Int) =
-        setValue(_movieConceptImages, id, Arguments.MOVIE_IMAGES_TYPE_CONCEPT)
-
-    private fun getMovieWallpaperImages(id: Int) =
-        setValue(_movieWallpaperImages, id, Arguments.MOVIE_IMAGES_TYPE_WALLPAPER)
-
-    private fun getMovieCoverImages(id: Int) =
-        setValue(_movieCoverImages, id, Arguments.MOVIE_IMAGES_TYPE_COVER)
-
-    private fun getMovieScreenshotImages(id: Int) =
-        setValue(_movieScreenshotImages, id, Arguments.MOVIE_IMAGES_TYPE_SCREENSHOT)
-
-    private val imageFunctions = listOf(
-        ::getMovieStillImages,
-        ::getMovieShootingImages,
-        ::getMoviePosterImages,
-        ::getMovieFanArtImages,
-        ::getMoviePromoImages,
-        ::getMovieConceptImages,
-        ::getMovieWallpaperImages,
-        ::getMovieCoverImages,
-        ::getMovieScreenshotImages
-    )
-
     fun getAllImages(id: Int) {
-        for (imageFunction in imageFunctions) {
-            imageFunction(id)
-        }
-    }
-
-    private fun getFirstNonEmptyImages(id: Int) {
-        _movieImagesTypeIsNotNull.value = null
-        for (imageFunction in imageFunctions) {
-            if (movieImagesTypeIsNotNull.value != null) {
-                break
-            } else {
-                imageFunction(id)
-            }
+        _allMovieImages.value = emptyMap()
+        viewModelScope.launch {
+            val allImages = getAllMovieImagesUseCase.invoke(id, Arguments.movieImagesTypes)
+            _allMovieImages.value = allImages
         }
     }
 
     fun getMovieData(id: Int) {
-        getMovieInfo(id)
-        getMovieStaffInfo(id)
-        getSimilarMovies(id)
-        getFirstNonEmptyImages(id)
-        getSeasonsAndEpisodes(id)
-    }
-
-    private fun getSeasonsAndEpisodes(id: Int) {
+        _movieData.value = null
         viewModelScope.launch {
-            _seasonsAndEpisodes.value = getSeasonsAndEpisodesUseCase(id = id)
+            _movieData.value = getMovieDataUseCase(id = id, types = Arguments.movieImagesTypes)
         }
     }
 
@@ -415,21 +301,6 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun setValue(
-        mutableStateFlow: MutableStateFlow<List<ImageDto>>,
-        id: Int,
-        type: String
-    ) {
-        viewModelScope.launch {
-            val list = getMovieImagesUseCase(id, type)
-            if (_movieImagesTypeIsNotNull.value == null) {
-                if (list.isNotEmpty()) {
-                    _movieImagesTypeIsNotNull.value = list
-                }
-            }
-            mutableStateFlow.value = list
-        }
-    }
 
 
     // database
@@ -460,14 +331,14 @@ class MainViewModel @Inject constructor(
     private val _collectionIdListWithMovie = MutableStateFlow<List<Int>?>(null)
     val collectionIdListWithMovie = _collectionIdListWithMovie.asStateFlow()
 
-    private val _collectionsUpdateState =
-        MutableStateFlow(false)
-    val collectionsUpdateState = _collectionsUpdateState.asStateFlow()
+    private val _collectionUpdateChannel =
+        Channel<Unit>(Channel.BUFFERED)
+    val collectionUpdateChannel = _collectionUpdateChannel.receiveAsFlow()
 
     private val _createdCollectionId = MutableStateFlow<Int?>(null)
     val createdCollectionId = _createdCollectionId.asStateFlow()
 
-    private val _countriesAndGenres = MutableStateFlow<KinopoiskMovieSelectionFiltersDto?>(null)
+    private val _countriesAndGenres = MutableStateFlow<KinopoiskMovieSelectionFiltersImpl?>(null)
     val countriesAndGenres = _countriesAndGenres.asStateFlow()
 
     private val _isEmptyList = MutableStateFlow(false)
@@ -476,30 +347,15 @@ class MainViewModel @Inject constructor(
     private val currentFilterParameters = MutableStateFlow<FilterParameters?>(null)
 
     init {
-
-    }
-
-    init {
         getPremieres()
         getSelectionFilters()
-        currentFilterParameters.value = FilterParameters(
-            countryId = 54,
-            genreId = 25,
-            country = Arguments.ALL_COUNTRY,
-            genre = Arguments.ALL_GENRE,
-            sorting = Arguments.SORT_BY_RATING_FILTER,
-            type = Arguments.ARG_ALL_TYPE,
-            ratingFrom = "6",
-            ratingTo = "10",
-            yearFrom = "1999",
-            yearTo = "2023",
-            hideWatchedMovies = true
-        )
+        currentFilterParameters.value = getDefaultSearchFilterParametersUseCase()
     }
 
     private val currentKeyword = MutableStateFlow("")
 
-    var movieSearchFlow: Flow<PagingData<MovieDto>> = searchMovie(
+    //TODO
+    var movieSearchFlow: Flow<PagingData<MovieImpl>> = searchMovie(
         filterParametersProvider = { currentFilterParameters.value!! },
         keywordProvider = { currentKeyword.value }
     )
@@ -521,10 +377,6 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun clearCollectionIdListWithMovie() {
-        _collectionIdListWithMovie.value = null
-    }
-
     fun getCollectionIdListWithMovie(kinopoiskId: Int) {
         viewModelScope.launch {
             _collectionIdListWithMovie.value =
@@ -533,7 +385,7 @@ class MainViewModel @Inject constructor(
     }
 
     //Получить список всех коллекций
-    val collectionList = getCollectionListUseCase.getCollectionList()
+    val collectionList = getCollectionListUseCase.getOtherCollectionList()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -543,12 +395,8 @@ class MainViewModel @Inject constructor(
     // Создать новую коллекцию
     fun createNewCollection(newCollectionName: String) {
         viewModelScope.launch {
-            val newCollection = MoviesCollection(
-                collectionName = newCollectionName,
-                collectionIcon = R.drawable.ic_user,
-                numberOfMovies = 0
-            )
-            createNewCollectionUseCase.createNewCollection(newCollection)
+            val defaultIcon = R.drawable.ic_user
+            createNewCollectionUseCase.createNewCollection(newCollectionName, defaultIcon)
             _createdCollectionId.value = getCollectionIdUseCase(newCollectionName)
         }
     }
@@ -581,7 +429,7 @@ class MainViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             insertMovieToCollectionUseCase.insertMovieToCollection(kinopoiskMovie, collectionMovie)
-            _collectionsUpdateState.value = !_collectionsUpdateState.value
+            _collectionUpdateChannel.send(Unit)
             setStatusOfTheMovieInTheCollection(collectionMovie.collectionId, true)
         }
     }
@@ -589,7 +437,7 @@ class MainViewModel @Inject constructor(
     fun deleteMovieFromCollection(collectionMovie: CollectionMovie) {
         viewModelScope.launch {
             deleteMovieFromCollectionUseCase.deleteMovieFromCollection(collectionMovie)
-            _collectionsUpdateState.value = !_collectionsUpdateState.value
+            _collectionUpdateChannel.send(Unit)
             setStatusOfTheMovieInTheCollection(collectionMovie.collectionId, false)
         }
     }
@@ -606,6 +454,8 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    //удаление id, т.к. при переоткрытии ExtraMenuBottomSheetFragment - происходило повторное
+    // добавление в последнюю созданную коллекцию
     fun clearCreatedCollectionId() {
         _createdCollectionId.value = null
     }
@@ -618,7 +468,7 @@ class MainViewModel @Inject constructor(
     }
 
     // Получение всего списка "Просмотренные"
-    val watchedCollectionMovieList = getCollectionListUseCase.getWatchedMovieList()
+    val watchedCollectionMovieList = getWatchedCollectionListUseCase.getWatchedMovieList()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -626,46 +476,53 @@ class MainViewModel @Inject constructor(
         )
 
     // Добавление фильма в "Просмотренные"
-    suspend fun insertMovieToWatchedCollection(
+    fun insertMovieToWatchedCollection(
         kinopoiskMovie: KinopoiskMovie,
         watchedMovie: WatchedMovie
     ) {
-        insertMovieToCollectionUseCase.insertMovieToWatchedCollection(kinopoiskMovie, watchedMovie)
-        _movieInWatchedCollection.value = true
+        viewModelScope.launch {
+            insertMovieToWatchedCollectionUseCase.insertMovieToWatchedCollection(
+                kinopoiskMovie,
+                watchedMovie
+            )
+            _movieInWatchedCollection.value = true
+        }
     }
 
     //Удаление фильма из "Просмотренные"
-    suspend fun deleteMovieFromWatchedCollection(kinopoiskId: Int) {
-        val watchedMovie = checkMovieInWatchedCollectionUseCase.isMovieInWatchedCollection(kinopoiskId)
-        if (watchedMovie != null) {
-            deleteMovieFromCollectionUseCase.deleteMovieFromWatchedCollection(watchedMovie)
+    fun deleteMovieFromWatchedCollection(kinopoiskId: Int) {
+        viewModelScope.launch {
+            deleteMovieFromWatchedCollectionUseCase(kinopoiskId)
             _movieInWatchedCollection.value = false
         }
     }
 
     /* Интересующие */
     // Получение всего списка "Интересующие"
-    val interestingCollectionMovieList = getCollectionListUseCase.getInterestingMovieList()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    val interestingCollectionMovieList =
+        getInterestingCollectionListUseCase.getInterestingMovieList()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
 
     // Добавление фильма в "Интересующие"
-    suspend fun insertMovieToInterestingCollection(
+    fun insertMovieToInterestingCollection(
         kinopoiskMovie: KinopoiskMovie,
         interestingMovie: InterestingMovie
     ) {
-        insertMovieToCollectionUseCase.insertMovieToInterestingCollection(
-            kinopoiskMovie,
-            interestingMovie
-        )
+        viewModelScope.launch {
+            insertMovieToInterestingCollectionUseCase.insertMovieToInterestingCollection(
+                kinopoiskMovie,
+                interestingMovie
+            )
+        }
     }
 
     fun getCountriesAndGenres() {
         viewModelScope.launch {
-            _countriesAndGenres.value = getMovieSelectionFiltersUseCase()
+            _countriesAndGenres.value = getCountriesAndGenresUseCase()
         }
     }
 
@@ -676,7 +533,7 @@ class MainViewModel @Inject constructor(
     private fun searchMovie(
         filterParametersProvider: () -> FilterParameters,
         keywordProvider: () -> String
-    ): Flow<PagingData<MovieDto>> {
+    ): Flow<PagingData<MovieImpl>> {
         val pagingSourceFactory = {
             moviePagingSource = MovieSearchPagingSource(
                 searchMovieUseCase = searchMovieUseCase,

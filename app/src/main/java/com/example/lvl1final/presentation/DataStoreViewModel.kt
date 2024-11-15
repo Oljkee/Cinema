@@ -2,10 +2,13 @@ package com.example.lvl1final.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.lvl1final.data.api.CountryDto
-import com.example.lvl1final.data.api.GenreDto
-import com.example.lvl1final.data.entity.FilterParameters
-import com.example.lvl1final.presentation.onboarding.UserPreferencesRepository
+import com.example.lvl1final.domain.models.movieimpl.CountryImpl
+import com.example.lvl1final.domain.models.movie.FilterParameters
+import com.example.lvl1final.domain.models.movieimpl.GenreImpl
+import com.example.lvl1final.domain.usecase.GetOnBoardingCompleteStateUseCase
+import com.example.lvl1final.domain.usecase.GetSearchFilterParametersUseCase
+import com.example.lvl1final.domain.usecase.UpdateOnBoardingCompleteStateUseCase
+import com.example.lvl1final.domain.usecase.UpdateSearchFilterParametersUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,12 +18,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class DataStoreViewModel @Inject constructor(
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val getSearchFilterParametersUseCase: GetSearchFilterParametersUseCase,
+    private val getOnBoardingCompleteStateUseCase: GetOnBoardingCompleteStateUseCase,
+    private val updateOnBoardingCompleteStateUseCase: UpdateOnBoardingCompleteStateUseCase,
+    private val updateSearchFilterParametersUseCase: UpdateSearchFilterParametersUseCase
 ) : ViewModel() {
 
-    val isOnBoardingCompletedFlow = userPreferencesRepository.isOnBoardingCompletedFlow
+    val isOnBoardingCompletedFlow = getOnBoardingCompleteStateUseCase.invoke()
 
-    val searchFilterParameters = userPreferencesRepository.searchFilterParameters
+    val searchFilterParameters = getSearchFilterParametersUseCase.invoke()
 
     private val _typeFilterParameterTempValue = MutableStateFlow("")
     val typeFilterParameterTempValue = _typeFilterParameterTempValue.asStateFlow()
@@ -63,13 +69,13 @@ class DataStoreViewModel @Inject constructor(
 
     fun updateOnBoardingCompleted(isCompleted: Boolean) {
         viewModelScope.launch {
-            userPreferencesRepository.updateOnBoardingCompleted(isCompleted)
+            updateOnBoardingCompleteStateUseCase(isCompleted)
         }
     }
 
     fun updateSearchFilterParameters(filterParameters: FilterParameters) {
         viewModelScope.launch {
-            userPreferencesRepository.updateSearchFilterParameters(filterParameters)
+            updateSearchFilterParametersUseCase(filterParameters)
         }
     }
 
@@ -79,17 +85,17 @@ class DataStoreViewModel @Inject constructor(
         }
     }
 
-    fun setCountryTempValues(countryDto: CountryDto) {
+    fun setCountryTempValues(countryImpl: CountryImpl) {
         viewModelScope.launch {
-            _countryIdFilterParameterTempValue.value = countryDto.id!!
-            _countryFilterParameterTempValue.value = countryDto.country
+            _countryIdFilterParameterTempValue.value = countryImpl.id!!
+            _countryFilterParameterTempValue.value = countryImpl.country
         }
     }
 
-    fun setGenreTempValues(genreDto: GenreDto) {
+    fun setGenreTempValues(genreImpl: GenreImpl) {
         viewModelScope.launch {
-            _genreIdFilterParameterTempValue.value = genreDto.id!!
-            _genreFilterParameterTempValue.value = genreDto.genre
+            _genreIdFilterParameterTempValue.value = genreImpl.id!!
+            _genreFilterParameterTempValue.value = genreImpl.genre
         }
     }
 
@@ -135,8 +141,8 @@ class DataStoreViewModel @Inject constructor(
     fun setAllTempValues(filterParameters: FilterParameters) {
         filterParameters.apply {
             setTypeTempValue(type)
-            setCountryTempValues(CountryDto(country, countryId))
-            setGenreTempValues(GenreDto(genre, genreId))
+            setCountryTempValues(CountryImpl(country, countryId))
+            setGenreTempValues(GenreImpl(genre, genreId))
             setYearTempValues(yearFrom, yearTo)
             setRatingTempValues(ratingFrom, ratingTo)
             setSortingTempValue(sorting)

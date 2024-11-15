@@ -7,12 +7,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lvl1final.R
-import com.example.lvl1final.data.api.GenreDto
 import com.example.lvl1final.databinding.CountryGenreListItemBinding
+import com.example.lvl1final.domain.models.movieimpl.GenreImpl
 
 class GenreListAdapter(
-    private val setGenreTempValues: (genreDto: GenreDto) -> Unit
-) : ListAdapter<GenreDto, GenreViewHolder>(GenreDiffUtilCallback()) {
+    private val setGenreTempValues: (genre: GenreImpl) -> Unit
+) : ListAdapter<GenreImpl, GenreViewHolder>(GenreDiffUtilCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GenreViewHolder {
         val binding =
             CountryGenreListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -41,11 +41,11 @@ class GenreListAdapter(
     }
 }
 
-class GenreDiffUtilCallback : DiffUtil.ItemCallback<GenreDto>() {
-    override fun areItemsTheSame(oldItem: GenreDto, newItem: GenreDto): Boolean =
+class GenreDiffUtilCallback : DiffUtil.ItemCallback<GenreImpl>() {
+    override fun areItemsTheSame(oldItem: GenreImpl, newItem: GenreImpl): Boolean =
         oldItem.id == newItem.id
 
-    override fun areContentsTheSame(oldItem: GenreDto, newItem: GenreDto): Boolean =
+    override fun areContentsTheSame(oldItem: GenreImpl, newItem: GenreImpl): Boolean =
         oldItem == newItem
 }
 

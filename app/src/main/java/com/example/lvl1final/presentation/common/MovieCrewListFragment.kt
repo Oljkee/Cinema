@@ -9,8 +9,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.lvl1final.R
-import com.example.lvl1final.data.api.MovieStaffDto
 import com.example.lvl1final.databinding.FragmentMovieCrewListBinding
+import com.example.lvl1final.domain.models.movieimpl.MovieStaffImpl
 import com.example.lvl1final.presentation.Arguments
 import com.example.lvl1final.presentation.MainViewModel
 import kotlinx.coroutines.launch
@@ -48,7 +48,7 @@ class MovieCrewListFragment : Fragment() {
         }
     }
 
-    private fun onActorItemClick(staff: MovieStaffDto) {
+    private fun onActorItemClick(staff: MovieStaffImpl) {
         val id = staff.staffId
         viewModel.getActorInfo(id)
         findNavController().navigate(R.id.action_movieCrewListFragment_to_actorPageFragment)

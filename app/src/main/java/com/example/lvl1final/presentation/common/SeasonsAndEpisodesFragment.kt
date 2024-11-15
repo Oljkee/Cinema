@@ -35,15 +35,16 @@ class SeasonsAndEpisodesFragment : Fragment() {
             imgBackButton.setOnClickListener { findNavController().popBackStack() }
 
             viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.movieInfo.collectLatest { movieInfo ->
-                    movieInfo?.apply {
+                viewModel.movieData.collectLatest {
+                    it?.movieInfo?.apply {
                         binding.textViewSerialName.text = nameRu ?: (nameOriginal ?: nameEn)
                     }
                 }
             }
 
             viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.seasonsAndEpisodes.collectLatest { seriesData ->
+                viewModel.movieData.collectLatest { fullMovieData ->
+                    val seriesData = fullMovieData?.seasonsAndEpisodes
                     if (seriesData != null) {
                         viewLifecycleOwner.lifecycleScope.launch {
                             if (seriesData.total > 0) {

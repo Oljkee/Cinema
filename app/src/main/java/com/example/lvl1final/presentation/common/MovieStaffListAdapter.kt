@@ -6,13 +6,13 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.lvl1final.data.api.MovieStaffDto
 import com.example.lvl1final.databinding.StaffMemberListItemBinding
+import com.example.lvl1final.domain.models.movieimpl.MovieStaffImpl
 import com.example.lvl1final.presentation.Arguments
 
 class MovieStaffListAdapter(
-    private val onActorItemClick: (staffMember: MovieStaffDto) -> Unit
-) : ListAdapter<MovieStaffDto, MovieStaffViewHolder>(StaffDiffUtilCallback()) {
+    private val onActorItemClick: (staffMember: MovieStaffImpl) -> Unit
+) : ListAdapter<MovieStaffImpl, MovieStaffViewHolder>(StaffDiffUtilCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieStaffViewHolder {
         val binding =
@@ -47,11 +47,11 @@ class MovieStaffListAdapter(
     }
 }
 
-class StaffDiffUtilCallback : DiffUtil.ItemCallback<MovieStaffDto>() {
-    override fun areItemsTheSame(oldItem: MovieStaffDto, newItem: MovieStaffDto): Boolean =
+class StaffDiffUtilCallback : DiffUtil.ItemCallback<MovieStaffImpl>() {
+    override fun areItemsTheSame(oldItem: MovieStaffImpl, newItem: MovieStaffImpl): Boolean =
         oldItem.staffId == newItem.staffId
 
-    override fun areContentsTheSame(oldItem: MovieStaffDto, newItem: MovieStaffDto): Boolean =
+    override fun areContentsTheSame(oldItem: MovieStaffImpl, newItem: MovieStaffImpl): Boolean =
         oldItem == newItem
 
 }

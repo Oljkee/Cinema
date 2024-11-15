@@ -2,10 +2,10 @@ package com.example.lvl1final.presentation.search
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.example.lvl1final.data.api.MovieDto
-import com.example.lvl1final.data.entity.WatchedMovieWithKinopoiskMovie
-import com.example.lvl1final.data.entity.FilterParameters
-import com.example.lvl1final.domain.SearchMovieUseCase
+import com.example.lvl1final.domain.models.collection.WatchedMovieWithKinopoiskMovie
+import com.example.lvl1final.domain.models.movie.FilterParameters
+import com.example.lvl1final.domain.models.movieimpl.MovieImpl
+import com.example.lvl1final.domain.usecase.SearchMovieUseCase
 
 class MovieSearchPagingSource(
     private val searchMovieUseCase: SearchMovieUseCase,
@@ -13,11 +13,11 @@ class MovieSearchPagingSource(
     private val keyword: String,
     private val isEmptyList: (isEmptyList: Boolean) -> Unit,
     private val watchedMovieList: List<WatchedMovieWithKinopoiskMovie?>
-) : PagingSource<Int, MovieDto>() {
+) : PagingSource<Int, MovieImpl>() {
 
-    override fun getRefreshKey(state: PagingState<Int, MovieDto>): Int = FIRST_PAGE
+    override fun getRefreshKey(state: PagingState<Int, MovieImpl>): Int = FIRST_PAGE
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MovieDto> {
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MovieImpl> {
         val pageNumber = params.key ?: FIRST_PAGE
         return kotlin.runCatching {
                 if (keyword == "") {
@@ -48,8 +48,8 @@ class MovieSearchPagingSource(
                         if (watchedMovieList.isNotEmpty()) {
                             val watchedMovieIdSet =
                                 watchedMovieList.map { it!!.kinopoiskMovie.kinopoiskId }.toSet()
-                            list.filter { movieDto ->
-                                movieDto.kinopoiskId !in watchedMovieIdSet
+                            list.filter { movie ->
+                                movie.kinopoiskId !in watchedMovieIdSet
                             }
                         } else list
                     } else {

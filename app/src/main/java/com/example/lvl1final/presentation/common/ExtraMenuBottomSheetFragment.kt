@@ -11,11 +11,11 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ConcatAdapter
 import com.bumptech.glide.Glide
 import com.example.lvl1final.R
-import com.example.lvl1final.data.entity.Collection
-import com.example.lvl1final.data.api.KinopoiskMovieInfoDto
 import com.example.lvl1final.databinding.FragmentExtraMenuBottomSheetBinding
-import com.example.lvl1final.data.entity.CollectionMovie
-import com.example.lvl1final.data.entity.KinopoiskMovie
+import com.example.lvl1final.domain.models.collection.Collection
+import com.example.lvl1final.domain.models.collection.CollectionMovie
+import com.example.lvl1final.domain.models.collection.KinopoiskMovie
+import com.example.lvl1final.domain.models.movie.KinopoiskMovieInfo
 import com.example.lvl1final.presentation.MainViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.flow.combine
@@ -27,7 +27,7 @@ class ExtraMenuBottomSheetFragment : BottomSheetDialogFragment() {
     private val binding get() = _binding!!
 
     private var movieId = 0
-    private var movie: KinopoiskMovieInfoDto? = null
+    private var movie: KinopoiskMovieInfo? = null
     private val collectionListAdapter =
         CollectionListAdapter { moviesCollection, isChecked ->
             onCollectionItemClick(moviesCollection, isChecked)
@@ -40,7 +40,6 @@ class ExtraMenuBottomSheetFragment : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentExtraMenuBottomSheetBinding.inflate(layoutInflater, container, false)
-        viewModel.clearCreatedCollectionId()
         return binding.root
     }
 
@@ -59,18 +58,18 @@ class ExtraMenuBottomSheetFragment : BottomSheetDialogFragment() {
             }
 
             viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.movieInfo.collect { movieInfo ->
-                    movieInfo?.apply {
+                viewModel.movieData.collect {
+                    it?.movieInfo?.apply {
                         movie = this
                         movieId = kinopoiskId
                         Glide.with(root.context)
                             .load(posterUrlPreview)
                             .into(movieCard.imgViewMoviePoster)
-
+                        viewModel.getCollectionIdListWithMovie(movieId)
                         movieCard.textviewMovieName.text = nameRu ?: (nameOriginal ?: nameEn)
 
-                        val genre: String = genres.joinToString(separator = ", ") { genreDto ->
-                            genreDto.genre
+                        val genre: String = genres.joinToString(separator = ", ") { genre ->
+                            genre.genre
                         }
                         movieCard.textviewYearGenre.text = genre
                         ratingKinopoisk
@@ -112,8 +111,8 @@ class ExtraMenuBottomSheetFragment : BottomSheetDialogFragment() {
                         movie?.apply {
                             val collectionMovie = CollectionMovie(it, kinopoiskId)
                             val name = nameRu ?: (nameOriginal ?: nameEn)
-                            val genre: String = genres.joinToString(separator = ", ") { genreDto ->
-                                genreDto.genre
+                            val genre: String = genres.joinToString(separator = ", ") { genre ->
+                                genre.genre
                             }
                             val kinopoiskMovie = KinopoiskMovie(
                                 kinopoiskId,
@@ -125,12 +124,13 @@ class ExtraMenuBottomSheetFragment : BottomSheetDialogFragment() {
                             )
                             viewModel.insertMovieToCollection(kinopoiskMovie, collectionMovie)
                         }
+                        viewModel.clearCreatedCollectionId()
                     }
                 }
             }
 
             viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.collectionsUpdateState.collect {
+                viewModel.collectionUpdateChannel.collect {
                     viewModel.getCollectionIdListWithMovie(movieId)
                 }
             }
@@ -144,8 +144,8 @@ class ExtraMenuBottomSheetFragment : BottomSheetDialogFragment() {
                 viewModel.deleteMovieFromCollection(collectionMovie)
             } else {
                 val name = nameRu ?: (nameOriginal ?: nameEn)
-                val genre: String = genres.joinToString(separator = ", ") { genreDto ->
-                    genreDto.genre
+                val genre: String = genres.joinToString(separator = ", ") { genre ->
+                    genre.genre
                 }
                 val kinopoiskMovie = KinopoiskMovie(
                     kinopoiskId,

@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lvl1final.databinding.CollectionCardListItemBinding
-import com.example.lvl1final.data.entity.MoviesCollection
+import com.example.lvl1final.domain.models.collection.MoviesCollection
 
 
 class CollectionCardListAdapter(

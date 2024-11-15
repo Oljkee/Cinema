@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.lvl1final.databinding.FilmListItemBinding
-import com.example.lvl1final.data.entity.WatchedMovieWithKinopoiskMovie
+import com.example.lvl1final.domain.models.collection.WatchedMovieWithKinopoiskMovie
 
 class WatchedMovieListAdapter(
     private val onItemClick: (id: Int) -> Unit

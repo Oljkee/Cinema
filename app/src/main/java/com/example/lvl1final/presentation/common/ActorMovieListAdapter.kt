@@ -7,13 +7,13 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.lvl1final.data.api.FilmDto
 import com.example.lvl1final.databinding.FilmListItemBinding
+import com.example.lvl1final.domain.models.movieimpl.FilmImpl
 
 class ActorMovieListAdapter(
-    private val onItemClick: (film: FilmDto) -> Unit,
+    private val onItemClick: (film: FilmImpl) -> Unit,
     private val isWatchedMovie: (id: Int) -> Boolean
-) : ListAdapter<FilmDto, ActorMovieViewHolder>(ActorDiffUtilCallback()) {
+) : ListAdapter<FilmImpl, ActorMovieViewHolder>(ActorDiffUtilCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActorMovieViewHolder {
         val binding =
@@ -57,12 +57,12 @@ class ActorMovieListAdapter(
     }
 }
 
-class ActorDiffUtilCallback : DiffUtil.ItemCallback<FilmDto>() {
-    override fun areItemsTheSame(oldItem: FilmDto, newItem: FilmDto): Boolean =
+class ActorDiffUtilCallback : DiffUtil.ItemCallback<FilmImpl>() {
+    override fun areItemsTheSame(oldItem: FilmImpl, newItem: FilmImpl): Boolean =
         oldItem.filmId == newItem.filmId
 
 
-    override fun areContentsTheSame(oldItem: FilmDto, newItem: FilmDto): Boolean =
+    override fun areContentsTheSame(oldItem: FilmImpl, newItem: FilmImpl): Boolean =
         oldItem == newItem
 
 }

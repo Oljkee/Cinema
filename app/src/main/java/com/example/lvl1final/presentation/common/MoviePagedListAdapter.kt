@@ -7,13 +7,13 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.lvl1final.data.api.MovieDto
 import com.example.lvl1final.databinding.FilmListItemBinding
+import com.example.lvl1final.domain.models.movieimpl.MovieImpl
 
 class MoviePagedListAdapter(
-    private val onItemClick: (movie: MovieDto) -> Unit,
+    private val onItemClick: (movie: MovieImpl) -> Unit,
     private val isWatchedMovie: (id: Int) -> Boolean
-) : PagingDataAdapter<MovieDto, PagedMovieViewHolder>(PagedDiffUtilCallback()) {
+) : PagingDataAdapter<MovieImpl, PagedMovieViewHolder>(PagedDiffUtilCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PagedMovieViewHolder {
         val binding =
             FilmListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -34,8 +34,8 @@ class MoviePagedListAdapter(
 
             val name = nameRu ?: (nameOriginal ?: nameEn)
 
-            val genre: String = genres.joinToString(separator = ", ") { genreDto ->
-                genreDto.genre
+            val genre: String = genres.joinToString(separator = ", ") { genre ->
+                genre.genre
             }
             val id = kinopoiskId ?: filmId
             holder.binding.apply {
@@ -60,11 +60,11 @@ class MoviePagedListAdapter(
     }
 }
 
-class PagedDiffUtilCallback : DiffUtil.ItemCallback<MovieDto>() {
-    override fun areItemsTheSame(oldItem: MovieDto, newItem: MovieDto): Boolean =
+class PagedDiffUtilCallback : DiffUtil.ItemCallback<MovieImpl>() {
+    override fun areItemsTheSame(oldItem: MovieImpl, newItem: MovieImpl): Boolean =
         oldItem.filmId == newItem.filmId
 
-    override fun areContentsTheSame(oldItem: MovieDto, newItem: MovieDto): Boolean =
+    override fun areContentsTheSame(oldItem: MovieImpl, newItem: MovieImpl): Boolean =
         oldItem == newItem
 }
 

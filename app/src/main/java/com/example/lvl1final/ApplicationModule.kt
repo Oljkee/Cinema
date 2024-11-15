@@ -4,16 +4,21 @@ import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.example.lvl1final.data.db.KinopoiskDao
-import com.example.lvl1final.data.db.KinopoiskDatabase
-import com.example.lvl1final.data.entity.MoviesCollection
-import com.example.lvl1final.data.NetworkConnectionManager
-import com.example.lvl1final.presentation.onboarding.UserPreferencesRepository
-import com.example.lvl1final.data.NetworkConnectionManagerImpl
-import com.example.lvl1final.data.repositories.KinopoiskNetworkRepository
-import com.example.lvl1final.data.repositories.KinopoiskNetworkRepositoryImpl
-import com.example.lvl1final.data.repositories.KinopoiskStorageRepository
-import com.example.lvl1final.data.repositories.KinopoiskStorageRepositoryImpl
+import com.example.lvl1final.data.storage.KinopoiskDao
+import com.example.lvl1final.data.storage.KinopoiskDatabase
+import com.example.lvl1final.data.storage.entity.MoviesCollectionEntity
+import com.example.lvl1final.data.network.NetworkConnectionManager
+import com.example.lvl1final.data.repositories.UserPreferencesRepositoryImpl
+import com.example.lvl1final.data.network.NetworkConnectionManagerImpl
+import com.example.lvl1final.data.repositories.InterestingMovieRepositoryImpl
+import com.example.lvl1final.data.repositories.MovieRepositoryImpl
+import com.example.lvl1final.domain.repository.MovieRepository
+import com.example.lvl1final.data.repositories.MovieCollectionRepositoryImpl
+import com.example.lvl1final.data.repositories.WatchedMoviesRepositoryImpl
+import com.example.lvl1final.domain.repository.InterestingMovieRepository
+import com.example.lvl1final.domain.repository.MovieCollectionRepository
+import com.example.lvl1final.domain.repository.UserPreferencesRepository
+import com.example.lvl1final.domain.repository.WatchedMoviesRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -31,13 +36,21 @@ class ApplicationModule {
     }
 
     @Provides
-    fun provideKinopoiskStorageRepository(dao: KinopoiskDao): KinopoiskStorageRepository {
-        return KinopoiskStorageRepositoryImpl(dao)
+    fun provideWatchedMoviesRepository(dao: KinopoiskDao): WatchedMoviesRepository {
+        return WatchedMoviesRepositoryImpl(dao)
+    }
+    @Provides
+    fun provideInterestingMovieRepository(dao: KinopoiskDao): InterestingMovieRepository {
+        return InterestingMovieRepositoryImpl(dao)
+    }
+    @Provides
+    fun provideMovieCollectionRepository(dao: KinopoiskDao): MovieCollectionRepository {
+        return MovieCollectionRepositoryImpl(dao)
     }
 
     @Provides
-    fun provideKinopoiskNetworkRepository(): KinopoiskNetworkRepository {
-        return KinopoiskNetworkRepositoryImpl()
+    fun provideMovieRepository(): MovieRepository {
+        return MovieRepositoryImpl()
     }
 
     @Provides
@@ -54,18 +67,20 @@ class ApplicationModule {
 
     @Provides
     @Singleton
-    fun provideDataStore(@ApplicationContext context: Context) = UserPreferencesRepository(context)
+    fun provideUserPreferencesRepository(@ApplicationContext context: Context) : UserPreferencesRepository {
+        return UserPreferencesRepositoryImpl(context)
+    }
 
 
     private suspend fun insertDefaultCollections(dao: KinopoiskDao) {
         withContext(Dispatchers.IO) {
-            val favoriteCollection = MoviesCollection(
+            val favoriteCollection = MoviesCollectionEntity(
                 collectionName = "Любимое",
                 collectionIcon = R.drawable.ic_heart,
                 numberOfMovies = 0,
                 deletable = false
             )
-            val delayedCollection = MoviesCollection(
+            val delayedCollection = MoviesCollectionEntity(
                 collectionName = "Хочу посмотреть",
                 collectionIcon = R.drawable.ic_bookmark,
                 numberOfMovies = 0,
@@ -78,7 +93,7 @@ class ApplicationModule {
     }
 
 
-    fun getInstance(context: Context): KinopoiskDatabase {
+    fun getInstance(@ApplicationContext context: Context): KinopoiskDatabase {
         return runBlocking {
             buildDatabase(context)
         }

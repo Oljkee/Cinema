@@ -1,7 +1,6 @@
 package com.example.lvl1final.presentation.common
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -11,9 +10,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.lvl1final.R
-import com.example.lvl1final.data.api.FilmDto
 import com.example.lvl1final.databinding.FragmentActorPageBinding
-import com.example.lvl1final.data.entity.WatchedMovieWithKinopoiskMovie
+import com.example.lvl1final.domain.models.collection.WatchedMovieWithKinopoiskMovie
+import com.example.lvl1final.domain.models.movieimpl.FilmImpl
 import com.example.lvl1final.presentation.Arguments
 import com.example.lvl1final.presentation.MainViewModel
 import kotlinx.coroutines.launch
@@ -55,7 +54,6 @@ class ActorPageFragment : Fragment() {
 
             viewLifecycleOwner.lifecycleScope.launch {
                 viewModel.actorInfo.collect { actorInfo ->
-                    Log.d("actorInfo", "onViewCreated: personId: ${actorInfo?.personId}")
                     actorInfo?.apply {
                         Glide.with(root.context)
                             .load(posterUrl)
@@ -94,16 +92,12 @@ class ActorPageFragment : Fragment() {
         if (watchedMovieList.isNotEmpty()) {
             for (movie in watchedMovieList) {
                 if (id == movie?.kinopoiskMovie?.kinopoiskId) return true
-                Log.d(
-                    "isWatchedMovie",
-                    "isWatchedMovie: id:${id}, kinopoiskId:${movie?.kinopoiskMovie?.kinopoiskId}"
-                )
             }
         }
         return false
     }
 
-    private fun onItemClick(film: FilmDto) {
+    private fun onItemClick(film: FilmImpl) {
         val id = film.filmId
         viewModel.getMovieData(id)
         bundle.putInt(Arguments.ARG_KINOPOISK_ID, id)

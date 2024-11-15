@@ -10,11 +10,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.lvl1final.R
-import com.example.lvl1final.data.api.MovieDto
-import com.example.lvl1final.data.api.SimilarMoviesItemDto
 import com.example.lvl1final.databinding.FragmentListPageBinding
-import com.example.lvl1final.data.entity.KinopoiskMovie
-import com.example.lvl1final.data.entity.WatchedMovieWithKinopoiskMovie
+import com.example.lvl1final.domain.models.collection.KinopoiskMovie
+import com.example.lvl1final.domain.models.collection.WatchedMovieWithKinopoiskMovie
+import com.example.lvl1final.domain.models.movieimpl.MovieImpl
+import com.example.lvl1final.domain.models.movieimpl.SimilarMoviesItemImpl
 import com.example.lvl1final.presentation.Arguments
 import com.example.lvl1final.presentation.MainViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -142,7 +142,8 @@ class ListPageFragment : Fragment() {
 
                     Arguments.ARG_SIMILAR_MOVIES -> {
                         recyclerViewMovies.adapter = similarMovieListAdapter
-                        viewModel.similarMovies.collectLatest { similarMovieList ->
+                        viewModel.movieData.collectLatest {
+                            val similarMovieList = it?.similarMovies
                             similarMovieListAdapter.submitList(similarMovieList)
                         }
                     }
@@ -196,7 +197,7 @@ class ListPageFragment : Fragment() {
         }
     }
 
-    private fun onItemClick(movie: MovieDto) {
+    private fun onItemClick(movie: MovieImpl) {
         val id = if (movie.filmId == null && movie.kinopoiskId != null) {
             movie.kinopoiskId
         } else movie.filmId!!
@@ -205,7 +206,7 @@ class ListPageFragment : Fragment() {
         findNavController().navigate(R.id.action_listPageFragment_to_filmPageFragment, bundle)
     }
 
-    private fun onMovieItemClick(movie: SimilarMoviesItemDto) {
+    private fun onMovieItemClick(movie: SimilarMoviesItemImpl) {
         val id = movie.filmId
         viewModel.getMovieData(id)
         bundle.putInt(Arguments.ARG_KINOPOISK_ID, id)

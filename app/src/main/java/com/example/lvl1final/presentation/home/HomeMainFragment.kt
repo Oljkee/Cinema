@@ -16,8 +16,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ConcatAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lvl1final.R
-import com.example.lvl1final.data.api.MovieDto
-import com.example.lvl1final.data.entity.WatchedMovieWithKinopoiskMovie
+import com.example.lvl1final.domain.models.collection.WatchedMovieWithKinopoiskMovie
+import com.example.lvl1final.domain.models.movieimpl.MovieImpl
 import com.example.lvl1final.presentation.Arguments
 import com.example.lvl1final.presentation.common.MovieListAdapter
 import com.example.lvl1final.presentation.common.MoviePagedListAdapter
@@ -284,7 +284,7 @@ class HomeMainFragment : Fragment() {
         _binding = null
     }
 
-    private fun onItemClick(movie: MovieDto) {
+    private fun onItemClick(movie: MovieImpl) {
         val id = if (movie.filmId == null && movie.kinopoiskId != null) {
             movie.kinopoiskId
         } else movie.filmId!!

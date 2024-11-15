@@ -11,20 +11,19 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.example.lvl1final.R
-import com.example.lvl1final.data.api.ImageDto
-import com.example.lvl1final.data.api.KinopoiskMovieInfoDto
-import com.example.lvl1final.data.api.MovieStaffDto
-import com.example.lvl1final.data.api.SimilarMoviesItemDto
 import com.example.lvl1final.databinding.FragmentFilmPageBinding
-import com.example.lvl1final.data.entity.CollectionMovie
-import com.example.lvl1final.data.entity.InterestingMovie
-import com.example.lvl1final.data.entity.KinopoiskMovie
-import com.example.lvl1final.data.entity.WatchedMovie
-import com.example.lvl1final.data.entity.WatchedMovieWithKinopoiskMovie
+import com.example.lvl1final.domain.models.collection.CollectionMovie
+import com.example.lvl1final.domain.models.collection.InterestingMovie
+import com.example.lvl1final.domain.models.collection.KinopoiskMovie
+import com.example.lvl1final.domain.models.collection.WatchedMovie
+import com.example.lvl1final.domain.models.collection.WatchedMovieWithKinopoiskMovie
+import com.example.lvl1final.domain.models.movieimpl.ImageImpl
+import com.example.lvl1final.domain.models.movie.KinopoiskMovieInfo
+import com.example.lvl1final.domain.models.movieimpl.MovieStaffImpl
+import com.example.lvl1final.domain.models.movie.SimilarMoviesItem
 import com.example.lvl1final.presentation.Arguments
 import com.example.lvl1final.presentation.MainViewModel
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class FilmPageFragment : Fragment() {
@@ -48,7 +47,6 @@ class FilmPageFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentFilmPageBinding.inflate(layoutInflater, container, false)
-        viewModel.clearCollectionIdListWithMovie()
         return binding.root
     }
 
@@ -90,14 +88,13 @@ class FilmPageFragment : Fragment() {
             }
 
             viewLifecycleOwner.lifecycleScope.launch {
-                viewModel.movieInfo.collect { movieInfo ->
-                    movieInfo?.apply {
-
-                        id = movieInfo.kinopoiskId
-                        viewModel.isMovieInWatchedCollection(movieInfo.kinopoiskId)
+                viewModel.movieData.collect { fullMovieData ->
+                    fullMovieData?.movieInfo?.apply {
+                        id = this.kinopoiskId
+                        viewModel.isMovieInWatchedCollection(this.kinopoiskId)
                         addToCollection(
                             viewModel.movieInInterestingCollection,
-                            movieInfo,
+                            this,
                             Arguments.INTERESTING_COLLECTION
                         )
 
@@ -105,7 +102,7 @@ class FilmPageFragment : Fragment() {
                         imgLikeButton.setOnClickListener {
                             isMovieInCollectionAfterClick(
                                 viewModel.movieInFavoriteCollection,
-                                movieInfo,
+                                this,
                                 Arguments.FAVORITE_COLLECTION_ID
                             )
                         }
@@ -113,19 +110,22 @@ class FilmPageFragment : Fragment() {
                         imgEyeButton.setOnClickListener {
                             addToCollection(
                                 viewModel.movieInWatchedCollection,
-                                movieInfo,
+                                this,
                                 Arguments.WATCHED_COLLECTION
                             )
                         }
 
                         imgShareButton.setOnClickListener {
-                            if (!imdbId.isNullOrEmpty()) shareMovie(imdbId)
+                            val id = imdbId
+                            if (!id.isNullOrEmpty()) {
+                                shareMovie(id)
+                            }
                         }
 
                         imgBookmarkButton.setOnClickListener {
                             isMovieInCollectionAfterClick(
                                 viewModel.movieInDelayedCollection,
-                                movieInfo,
+                                this,
                                 Arguments.DELAYED_COLLECTION_ID
                             )
                         }
@@ -139,11 +139,11 @@ class FilmPageFragment : Fragment() {
                         viewModel.getCollectionsWithMovie(kinopoiskId)
 
                         Glide.with(root.context)
-                            .load(movieInfo.logoUrl)
+                            .load(this.logoUrl)
                             .into(imgFilmLogo)
 
                         Glide.with(root.context)
-                            .load(movieInfo.posterUrl)
+                            .load(this.posterUrl)
                             .into(imgFilmPoster)
 
                         if (ratingKinopoisk != null) {
@@ -154,8 +154,8 @@ class FilmPageFragment : Fragment() {
 
                         textViewFilmName.text = nameRu ?: (nameOriginal ?: nameEn)
 
-                        val genre: String = genres.joinToString(separator = ", ") { genreDto ->
-                            genreDto.genre
+                        val genre: String = genres.joinToString(separator = ", ") { genre ->
+                            genre.genre
                         }
                         textViewYearGenres.text =
                             if (year != null) "$year, $genre"
@@ -164,22 +164,22 @@ class FilmPageFragment : Fragment() {
                         var countryLengthAgeResult = ""
 
                         val country: String =
-                            countries.joinToString(separator = ", ") { countryDto ->
-                                countryDto.country
+                            countries.joinToString(separator = ", ") { country ->
+                                country.country
                             }
                         countryLengthAgeResult += country
 
-                        if (filmLength != null) {
+                        filmLength?.let { length ->
                             if (countryLengthAgeResult.isNotEmpty()) {
                                 countryLengthAgeResult += ", "
                             }
-                            countryLengthAgeResult += formatMinutesToHoursAndMinutes(filmLength)
+                            countryLengthAgeResult += formatMinutesToHoursAndMinutes(length)
 
                         }
-
-                        if (!ratingAgeLimits.isNullOrEmpty()) {
+                        val limits = ratingAgeLimits
+                        if (!limits.isNullOrEmpty()) {
                             val regex = Regex("\\d+")
-                            val ageLimit = "${regex.find(ratingAgeLimits)!!.value}+"
+                            val ageLimit = "${regex.find(limits)!!.value}+"
                             if (countryLengthAgeResult.isNotEmpty()) {
                                 countryLengthAgeResult += ", "
                             }
@@ -212,187 +212,180 @@ class FilmPageFragment : Fragment() {
                             }
                         }
                     }
-                }
-            }
-        }
 
+                    // Сезоны и серии
+                    fullMovieData?.seasonsAndEpisodes.apply {
+                        if (this == null || this.items.isEmpty()) {
+                            layoutSeasonsEpisodes.visibility = View.GONE
+                            textViewNumberOfSeasonsEpisodes.visibility = View.GONE
+                        } else {
+                            val seasonsCount = this.total
+                            var episodesCount = 0
+                            this.items.forEach {
+                                episodesCount += it.episodes.size
+                            }
+                            layoutSeasonsEpisodes.visibility = View.VISIBLE
+                            textViewNumberOfSeasonsEpisodes.visibility = View.VISIBLE
+                            val numberOfEpisodesName = getNumberOfEpisodesName(episodesCount)
+                            val numberOfSeasonsName = getNumberOfSeasonsName(seasonsCount)
 
-        // Сезоны и серии
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.seasonsAndEpisodes.collect { seriesData ->
-                if (seriesData == null || seriesData.items.isEmpty()) {
-                    binding.layoutSeasonsEpisodes.visibility = View.GONE
-                    binding.textViewNumberOfSeasonsEpisodes.visibility = View.GONE
-                } else {
-                    val seasonsCount = seriesData.total
-                    var episodesCount = 0
-                    seriesData.items.forEach {
-                        episodesCount += it.episodes.size
+                            textViewNumberOfSeasonsEpisodes.text = resources.getString(
+                                R.string.number_of_seasons_and_episodes,
+                                seasonsCount,
+                                numberOfSeasonsName,
+                                episodesCount,
+                                numberOfEpisodesName
+                            )
+                            textViewAllSeasonsEpisodes.setOnClickListener {
+                                findNavController().navigate(R.id.action_filmPageFragment_to_seasonsAndEpisodesFragment)
+                            }
+                        }
                     }
-                    binding.apply {
-                        layoutSeasonsEpisodes.visibility = View.VISIBLE
-                        textViewNumberOfSeasonsEpisodes.visibility = View.VISIBLE
-                        val numberOfEpisodesName = getNumberOfEpisodesName(episodesCount)
-                        val numberOfSeasonsName = getNumberOfSeasonsName(seasonsCount)
 
-                        textViewNumberOfSeasonsEpisodes.text = resources.getString(
-                            R.string.number_of_seasons_and_episodes,
-                            seasonsCount,
-                            numberOfSeasonsName,
-                            episodesCount,
-                            numberOfEpisodesName
+                    // В фильме снимались
+                    // Над фильмом работали
+                    recyclerViewActors.adapter = movieActorListAdapter
+                    recyclerViewMovieCrew.adapter = movieCrewListAdapter
+                    fullMovieData?.staffInfo.apply {
+                        if (!this.isNullOrEmpty()) {
+                            val actors = mutableListOf<MovieStaffImpl>()
+                            val movieCrew = mutableListOf<MovieStaffImpl>()
+
+                            this.forEach { staffMember ->
+                                if (staffMember.professionKey == Arguments.MOVIE_STAFF_PROFESSION_ACTOR) {
+                                    actors.add(staffMember)
+                                } else {
+                                    movieCrew.add(staffMember)
+                                }
+                            }
+                            val actorResultList = actors.toList()
+
+                            if (actorResultList.isEmpty()) {
+                                layoutActors.visibility = View.GONE
+                                recyclerViewActors.visibility = View.GONE
+                            } else {
+                                layoutActors.visibility = View.VISIBLE
+                                recyclerViewActors.visibility = View.VISIBLE
+                                val actorListDisplaySize = if (actorResultList.size > 20) {
+                                    allActors.text = actorResultList.size.toString()
+                                    allActors.setOnClickListener {
+                                        viewModel.setMovieCrewList(actorResultList)
+                                        bundle.putString(
+                                            Arguments.MOVIE_CREW_TYPE_NAME,
+                                            getString(R.string.actors)
+                                        )
+                                        findNavController().navigate(
+                                            R.id.action_filmPageFragment_to_movieCrewListFragment,
+                                            bundle
+                                        )
+                                    }
+                                    20
+                                } else {
+                                    allActors.visibility = View.GONE
+                                    actorResultList.size
+                                }
+                                movieActorListAdapter.submitList(
+                                    actorResultList.subList(
+                                        0,
+                                        actorListDisplaySize
+                                    )
+                                )
+                            }
+
+
+                            val movieCrewResultList = movieCrew.toList()
+                            if (movieCrewResultList.isEmpty()) {
+                                layoutFilmCrew.visibility = View.GONE
+                                recyclerViewMovieCrew.visibility = View.GONE
+                            } else {
+                                layoutFilmCrew.visibility = View.VISIBLE
+                                recyclerViewMovieCrew.visibility = View.VISIBLE
+                                val movieCrewListDisplaySize = if (movieCrewResultList.size > 6) {
+                                    allFilmCrew.text = movieCrewResultList.size.toString()
+                                    allFilmCrew.setOnClickListener {
+                                        viewModel.setMovieCrewList(movieCrewResultList)
+                                        bundle.putString(
+                                            Arguments.MOVIE_CREW_TYPE_NAME,
+                                            getString(R.string.film_crew)
+                                        )
+                                        findNavController().navigate(
+                                            R.id.action_filmPageFragment_to_movieCrewListFragment,
+                                            bundle
+                                        )
+                                    }
+                                    6
+                                } else {
+                                    allFilmCrew.visibility = View.GONE
+                                    movieCrewResultList.size
+                                }
+                                movieCrewListAdapter.submitList(
+                                    movieCrewResultList.subList(
+                                        0,
+                                        movieCrewListDisplaySize
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    // Галерея
+                    recyclerViewGallery.adapter = movieImagesPagedListAdapter
+                    fullMovieData?.movieImages.apply {
+                        movieImagesPagedListAdapter.submitList(this)
+                    }
+                    allGalleryItems.setOnClickListener {
+                        viewModel.getAllImages(id!!)
+                        findNavController().navigate(R.id.action_filmPageFragment_to_galleryFragment)
+                    }
+
+                    // Похожие фильмы
+                    recyclerViewSimilarFilms.adapter = similarMovieListAdapter
+                    fullMovieData?.similarMovies?.apply {
+                        if (this.isEmpty()) {
+                            recyclerViewSimilarFilms.visibility = View.GONE
+                            linearLayoutSimilarFilms.visibility = View.GONE
+                        } else {
+                            recyclerViewSimilarFilms.visibility = View.VISIBLE
+                            linearLayoutSimilarFilms.visibility = View.VISIBLE
+                        }
+                        similarMovieListAdapter.submitList(this)
+                    }
+                    allSimilarFilms.setOnClickListener {
+                        bundle.putString(Arguments.TYPE, Arguments.ARG_SIMILAR_MOVIES)
+                        bundle.putString(
+                            Arguments.COLLECTION_NAME,
+                            getString(R.string.similar_films)
                         )
-                        textViewAllSeasonsEpisodes.setOnClickListener {
-                            findNavController().navigate(R.id.action_filmPageFragment_to_seasonsAndEpisodesFragment)
-                        }
+                        findNavController().navigate(
+                            R.id.action_filmPageFragment_to_listPageFragment,
+                            bundle
+                        )
+                    }
+
+                    if(fullMovieData != null) {
+                        loadingProgressBar.visibility = View.GONE
+                        appbar.visibility = View.VISIBLE
+                        nestedScrollView.visibility = View.VISIBLE
                     }
                 }
             }
-        }
-
-        // В фильме снимались
-        // Над фильмом работали
-        binding.recyclerViewActors.adapter = movieActorListAdapter
-        binding.recyclerViewMovieCrew.adapter = movieCrewListAdapter
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.movieStaffInfo.collect { movieStaffList ->
-                binding.apply {
-                    if (!movieStaffList.isNullOrEmpty()) {
-                        val actors = mutableListOf<MovieStaffDto>()
-                        val movieCrew = mutableListOf<MovieStaffDto>()
-
-                        movieStaffList.forEach { staffMember ->
-                            if (staffMember.professionKey == Arguments.MOVIE_STAFF_PROFESSION_ACTOR) {
-                                actors.add(staffMember)
-                            } else {
-                                movieCrew.add(staffMember)
-                            }
-                        }
-                        val actorResultList = actors.toList()
-
-                        if (actorResultList.isEmpty()) {
-                            layoutActors.visibility = View.GONE
-                            recyclerViewActors.visibility = View.GONE
-                        } else {
-                            layoutActors.visibility = View.VISIBLE
-                            recyclerViewActors.visibility = View.VISIBLE
-                            val actorListDisplaySize = if (actorResultList.size > 20) {
-                                allActors.text = actorResultList.size.toString()
-                                allActors.setOnClickListener {
-                                    viewModel.setMovieCrewList(actorResultList)
-                                    bundle.putString(
-                                        Arguments.MOVIE_CREW_TYPE_NAME,
-                                        getString(R.string.actors)
-                                    )
-                                    findNavController().navigate(
-                                        R.id.action_filmPageFragment_to_movieCrewListFragment,
-                                        bundle
-                                    )
-                                }
-                                20
-                            } else {
-                                allActors.visibility = View.GONE
-                                actorResultList.size
-                            }
-                            movieActorListAdapter.submitList(
-                                actorResultList.subList(
-                                    0,
-                                    actorListDisplaySize
-                                )
-                            )
-                        }
-
-
-                        val movieCrewResultList = movieCrew.toList()
-                        if (movieCrewResultList.isEmpty()) {
-                            layoutFilmCrew.visibility = View.GONE
-                            recyclerViewMovieCrew.visibility = View.GONE
-                        } else {
-                            layoutFilmCrew.visibility = View.VISIBLE
-                            recyclerViewMovieCrew.visibility = View.VISIBLE
-                            val movieCrewListDisplaySize = if (movieCrewResultList.size > 6) {
-                                allFilmCrew.text = movieCrewResultList.size.toString()
-                                allFilmCrew.setOnClickListener {
-                                    viewModel.setMovieCrewList(movieCrewResultList)
-                                    bundle.putString(
-                                        Arguments.MOVIE_CREW_TYPE_NAME,
-                                        getString(R.string.film_crew)
-                                    )
-                                    findNavController().navigate(
-                                        R.id.action_filmPageFragment_to_movieCrewListFragment,
-                                        bundle
-                                    )
-                                }
-                                6
-                            } else {
-                                allFilmCrew.visibility = View.GONE
-                                movieCrewResultList.size
-                            }
-                            movieCrewListAdapter.submitList(
-                                movieCrewResultList.subList(
-                                    0,
-                                    movieCrewListDisplaySize
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-
-        // Галерея
-        binding.apply {
-            viewLifecycleOwner.lifecycleScope.launch {
-                recyclerViewGallery.adapter = movieImagesPagedListAdapter
-                viewModel.movieImagesTypeIsNotNull.collectLatest { movieList ->
-                    movieImagesPagedListAdapter.submitList(movieList)
-                }
-            }
-            allGalleryItems.setOnClickListener {
-                viewModel.getAllImages(id!!)
-                findNavController().navigate(R.id.action_filmPageFragment_to_galleryFragment)
-            }
-        }
-
-
-        // Похожие фильмы
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.similarMovies.collect { movieList ->
-                binding.recyclerViewSimilarFilms.adapter = similarMovieListAdapter
-                if (movieList.isEmpty()) {
-                    binding.recyclerViewSimilarFilms.visibility = View.GONE
-                    binding.linearLayoutSimilarFilms.visibility = View.GONE
-                } else {
-                    binding.recyclerViewSimilarFilms.visibility = View.VISIBLE
-                    binding.linearLayoutSimilarFilms.visibility = View.VISIBLE
-                }
-                similarMovieListAdapter.submitList(movieList)
-            }
-        }
-
-        binding.allSimilarFilms.setOnClickListener {
-            bundle.putString(Arguments.TYPE, Arguments.ARG_SIMILAR_MOVIES)
-            bundle.putString(Arguments.COLLECTION_NAME, getString(R.string.similar_films))
-            findNavController().navigate(R.id.action_filmPageFragment_to_listPageFragment, bundle)
         }
     }
 
-    private fun onMovieItemClick(movie: SimilarMoviesItemDto) {
+    private fun onMovieItemClick(movie: SimilarMoviesItem) {
         val id = movie.filmId
         viewModel.getMovieData(id)
         bundle.putInt(Arguments.ARG_KINOPOISK_ID, id)
         findNavController().navigate(R.id.action_filmPageFragment_self, bundle)
     }
 
-    private fun onActorItemClick(staff: MovieStaffDto) {
+    private fun onActorItemClick(staff: MovieStaffImpl) {
         val id = staff.staffId
         viewModel.getActorInfo(id)
         findNavController().navigate(R.id.action_filmPageFragment_to_actorPageFragment)
     }
 
-    private fun onGalleryItemClick(image: ImageDto) {
+    private fun onGalleryItemClick(image: ImageImpl) {
         bundle.putString(Arguments.ARG_GALLERY_IMAGE_URL, image.imageUrl)
         findNavController().navigate(R.id.action_filmPageFragment_to_imageDialogFragment, bundle)
     }
@@ -419,15 +412,15 @@ class FilmPageFragment : Fragment() {
 
     private fun addToCollection(
         movieStateFlow: StateFlow<Boolean>,
-        movieInfo: KinopoiskMovieInfoDto,
+        movieInfo: KinopoiskMovieInfo,
         collectionType: String
     ) {
         val kinopoiskMovie: KinopoiskMovie
         val id = movieInfo.kinopoiskId
         movieInfo.apply {
             val name = nameRu ?: (nameOriginal ?: nameEn)
-            val genre: String = genres.joinToString(separator = ", ") { genreDto ->
-                genreDto.genre
+            val genre: String = genres.joinToString(separator = ", ") { genre ->
+                genre.genre
             }
             kinopoiskMovie = KinopoiskMovie(
                 kinopoiskId,
@@ -438,31 +431,26 @@ class FilmPageFragment : Fragment() {
                 ratingKinopoisk
             )
         }
-
         if (collectionType == Arguments.INTERESTING_COLLECTION) {
             val interestingMovie = InterestingMovie(kinopoiskId = id)
 
-            viewLifecycleOwner.lifecycleScope.launch {
                 if (!movieStateFlow.value) {
                     viewModel.insertMovieToInterestingCollection(kinopoiskMovie, interestingMovie)
                 }
-            }
         } else {
             val watchedMovie = WatchedMovie(kinopoiskId = id)
 
-            viewLifecycleOwner.lifecycleScope.launch {
                 if (movieStateFlow.value) {
                     viewModel.deleteMovieFromWatchedCollection(kinopoiskId = id)
                 } else {
                     viewModel.insertMovieToWatchedCollection(kinopoiskMovie, watchedMovie)
                 }
-            }
         }
     }
 
     private fun isMovieInCollectionAfterClick(
         movieStateFlow: StateFlow<Boolean>,
-        movieInfo: KinopoiskMovieInfoDto,
+        movieInfo: KinopoiskMovieInfo,
         collectionId: Int
     ) {
         val kinopoiskMovie: KinopoiskMovie
@@ -470,8 +458,8 @@ class FilmPageFragment : Fragment() {
         val id = movieInfo.kinopoiskId
         movieInfo.apply {
             val name = nameRu ?: (nameOriginal ?: nameEn)
-            val genre: String = genres.joinToString(separator = ", ") { genreDto ->
-                genreDto.genre
+            val genre: String = genres.joinToString(separator = ", ") { genre ->
+                genre.genre
             }
             kinopoiskMovie = KinopoiskMovie(
                 kinopoiskId,
@@ -481,7 +469,8 @@ class FilmPageFragment : Fragment() {
                 year,
                 ratingKinopoisk
             )
-            collectionMovie = CollectionMovie(collectionId, id)
+            collectionMovie =
+                CollectionMovie(collectionId, id)
         }
 
         if (movieStateFlow.value) {

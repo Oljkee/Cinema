@@ -11,8 +11,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.lvl1final.R
-import com.example.lvl1final.data.api.MovieDto
 import com.example.lvl1final.databinding.FragmentSearchMainBinding
+import com.example.lvl1final.domain.models.movieimpl.MovieImpl
 import com.example.lvl1final.presentation.Arguments
 import com.example.lvl1final.presentation.MainViewModel
 import kotlinx.coroutines.Job
@@ -104,7 +104,7 @@ class SearchMainFragment : Fragment() {
         viewModel.updateSearchKeyword("")
     }
 
-    private fun onMovieListItemClick(movie: MovieDto) {
+    private fun onMovieListItemClick(movie: MovieImpl) {
         val id = movie.kinopoiskId!!
         viewModel.getMovieData(id)
         bundle.putInt(Arguments.ARG_KINOPOISK_ID, id)

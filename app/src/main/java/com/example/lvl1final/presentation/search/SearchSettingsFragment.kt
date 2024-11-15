@@ -13,7 +13,7 @@ import com.example.lvl1final.R
 import com.example.lvl1final.databinding.FragmentSearchSettingsBinding
 import com.example.lvl1final.presentation.Arguments
 import com.example.lvl1final.presentation.DataStoreViewModel
-import com.example.lvl1final.data.entity.FilterParameters
+import com.example.lvl1final.domain.models.movie.FilterParameters
 import com.example.lvl1final.presentation.MainViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine

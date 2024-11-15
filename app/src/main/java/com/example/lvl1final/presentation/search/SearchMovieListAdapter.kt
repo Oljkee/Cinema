@@ -7,12 +7,12 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.lvl1final.data.api.MovieDto
 import com.example.lvl1final.databinding.StaffMemberFilmographyListItemBinding
+import com.example.lvl1final.domain.models.movieimpl.MovieImpl
 
 class SearchMoviePagingDataAdapter(
-    private val onItemClick: (movie: MovieDto) -> Unit
-) : PagingDataAdapter<MovieDto, SearchMovieViewHolder>(SearchDiffUtilCallback()) {
+    private val onItemClick: (movie: MovieImpl) -> Unit
+) : PagingDataAdapter<MovieImpl, SearchMovieViewHolder>(SearchDiffUtilCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SearchMovieViewHolder {
         val binding =
@@ -58,11 +58,11 @@ class SearchMoviePagingDataAdapter(
     }
 }
 
-class SearchDiffUtilCallback : DiffUtil.ItemCallback<MovieDto>() {
-    override fun areItemsTheSame(oldItem: MovieDto, newItem: MovieDto): Boolean =
+class SearchDiffUtilCallback : DiffUtil.ItemCallback<MovieImpl>() {
+    override fun areItemsTheSame(oldItem: MovieImpl, newItem: MovieImpl): Boolean =
         oldItem.filmId == newItem.filmId
 
-    override fun areContentsTheSame(oldItem: MovieDto, newItem: MovieDto): Boolean =
+    override fun areContentsTheSame(oldItem: MovieImpl, newItem: MovieImpl): Boolean =
         oldItem == newItem
 }
 

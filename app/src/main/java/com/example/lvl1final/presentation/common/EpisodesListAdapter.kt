@@ -6,13 +6,13 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lvl1final.R
-import com.example.lvl1final.data.api.EpisodeDto
 import com.example.lvl1final.databinding.SerialEpisodeListItemBinding
+import com.example.lvl1final.domain.models.movieimpl.EpisodeImpl
 import java.text.SimpleDateFormat
 import java.util.*
 
 class EpisodesListAdapter :
-    ListAdapter<EpisodeDto, EpisodesViewHolder>(EpisodesDiffUtilCallback()) {
+    ListAdapter<EpisodeImpl, EpisodesViewHolder>(EpisodesDiffUtilCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EpisodesViewHolder {
         val binding =
             SerialEpisodeListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -50,11 +50,11 @@ class EpisodesListAdapter :
     }
 }
 
-class EpisodesDiffUtilCallback : DiffUtil.ItemCallback<EpisodeDto>() {
-    override fun areItemsTheSame(oldItem: EpisodeDto, newItem: EpisodeDto): Boolean =
+class EpisodesDiffUtilCallback : DiffUtil.ItemCallback<EpisodeImpl>() {
+    override fun areItemsTheSame(oldItem: EpisodeImpl, newItem: EpisodeImpl): Boolean =
         oldItem.episodeNumber == newItem.episodeNumber
 
-    override fun areContentsTheSame(oldItem: EpisodeDto, newItem: EpisodeDto): Boolean =
+    override fun areContentsTheSame(oldItem: EpisodeImpl, newItem: EpisodeImpl): Boolean =
         oldItem == newItem
 }
 

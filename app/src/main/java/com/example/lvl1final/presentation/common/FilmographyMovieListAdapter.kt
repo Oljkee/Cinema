@@ -7,12 +7,12 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.example.lvl1final.data.api.FilmDto
 import com.example.lvl1final.databinding.StaffMemberFilmographyListItemBinding
+import com.example.lvl1final.domain.models.movieimpl.FilmImpl
 
 class FilmographyMovieListAdapter(
-    private val onItemClick: (film: FilmDto) -> Unit
-) : ListAdapter<FilmDto, FilmographyMovieViewHolder>(FilmographyDiffUtilCallback()) {
+    private val onItemClick: (film: FilmImpl) -> Unit
+) : ListAdapter<FilmImpl, FilmographyMovieViewHolder>(FilmographyDiffUtilCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FilmographyMovieViewHolder {
         val binding =
@@ -54,11 +54,11 @@ class FilmographyMovieListAdapter(
     }
 }
 
-class FilmographyDiffUtilCallback : DiffUtil.ItemCallback<FilmDto>() {
-    override fun areItemsTheSame(oldItem: FilmDto, newItem: FilmDto): Boolean =
+class FilmographyDiffUtilCallback : DiffUtil.ItemCallback<FilmImpl>() {
+    override fun areItemsTheSame(oldItem: FilmImpl, newItem: FilmImpl): Boolean =
         oldItem.filmId == newItem.filmId
 
-    override fun areContentsTheSame(oldItem: FilmDto, newItem: FilmDto): Boolean =
+    override fun areContentsTheSame(oldItem: FilmImpl, newItem: FilmImpl): Boolean =
         oldItem == newItem
 }
 

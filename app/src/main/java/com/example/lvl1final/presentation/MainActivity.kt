@@ -8,8 +8,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import com.example.lvl1final.R
-import com.example.lvl1final.data.NetworkConnectionManager
-import com.example.lvl1final.data.entity.FilterParameters
+import com.example.lvl1final.data.network.NetworkConnectionManager
+import com.example.lvl1final.domain.models.movie.FilterParameters
 import com.example.lvl1final.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.distinctUntilChanged

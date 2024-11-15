@@ -4,12 +4,12 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.*
 import com.bumptech.glide.Glide
-import com.example.lvl1final.data.api.ImageDto
 import com.example.lvl1final.databinding.GalleryListItemBinding
+import com.example.lvl1final.domain.models.movieimpl.ImageImpl
 
 class GalleryListAdapter(
-    private val onGalleryItemClick: (image: ImageDto) -> Unit
-) : ListAdapter<ImageDto, MovieGalleryViewHolder>(GalleryDiffUtilCallback()) {
+    private val onGalleryItemClick: (image: ImageImpl) -> Unit
+) : ListAdapter<ImageImpl, MovieGalleryViewHolder>(GalleryDiffUtilCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieGalleryViewHolder {
         val binding =
@@ -50,12 +50,12 @@ class GalleryListAdapter(
     }
 }
 
-class GalleryDiffUtilCallback : DiffUtil.ItemCallback<ImageDto>() {
-    override fun areItemsTheSame(oldItem: ImageDto, newItem: ImageDto): Boolean =
+class GalleryDiffUtilCallback : DiffUtil.ItemCallback<ImageImpl>() {
+    override fun areItemsTheSame(oldItem: ImageImpl, newItem: ImageImpl): Boolean =
         oldItem.imageUrl == newItem.imageUrl
 
 
-    override fun areContentsTheSame(oldItem: ImageDto, newItem: ImageDto): Boolean =
+    override fun areContentsTheSame(oldItem: ImageImpl, newItem: ImageImpl): Boolean =
         oldItem == newItem
 
 }

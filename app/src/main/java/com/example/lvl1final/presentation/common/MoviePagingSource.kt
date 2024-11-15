@@ -2,12 +2,12 @@ package com.example.lvl1final.presentation.common
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.example.lvl1final.data.api.CountryDto
-import com.example.lvl1final.data.api.GenreDto
-import com.example.lvl1final.data.api.MovieDto
-import com.example.lvl1final.domain.GetSelectionMoviesUseCase
-import com.example.lvl1final.domain.GetSeriesUseCase
-import com.example.lvl1final.domain.GetTopMoviesUseCase
+import com.example.lvl1final.domain.models.movieimpl.CountryImpl
+import com.example.lvl1final.domain.models.movieimpl.GenreImpl
+import com.example.lvl1final.domain.models.movieimpl.MovieImpl
+import com.example.lvl1final.domain.usecase.GetSelectionMoviesUseCase
+import com.example.lvl1final.domain.usecase.GetSeriesUseCase
+import com.example.lvl1final.domain.usecase.GetTopMoviesUseCase
 import com.example.lvl1final.presentation.Arguments
 import kotlin.random.Random
 
@@ -16,17 +16,17 @@ class MoviePagingSource(
     private val getTopMoviesUseCase: GetTopMoviesUseCase,
     private val getSelectionMoviesUseCase: GetSelectionMoviesUseCase,
     private val listType: String,
-    private val countries: CountryDto? = null,
-    private val genres: GenreDto? = null,
+    private val countries: CountryImpl? = null,
+    private val genres: GenreImpl? = null,
     private val listPreview: Boolean = false
-) : PagingSource<Int, MovieDto>() {
+) : PagingSource<Int, MovieImpl>() {
     private var counter = 0
 
-    override fun getRefreshKey(state: PagingState<Int, MovieDto>): Int = FIRST_PAGE
+    override fun getRefreshKey(state: PagingState<Int, MovieImpl>): Int = FIRST_PAGE
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MovieDto> {
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, MovieImpl> {
         val pageNumber = params.key ?: FIRST_PAGE
-        var movieList: List<MovieDto>
+        var movieList: List<MovieImpl>
 
         return kotlin.runCatching {
             if (listPreview) {

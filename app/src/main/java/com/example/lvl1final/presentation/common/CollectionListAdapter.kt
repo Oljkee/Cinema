@@ -5,8 +5,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.example.lvl1final.data.entity.Collection
 import com.example.lvl1final.databinding.CollectionListItemBinding
+import com.example.lvl1final.domain.models.collection.Collection
 
 
 class CollectionListAdapter(

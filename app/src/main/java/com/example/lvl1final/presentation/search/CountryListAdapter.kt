@@ -7,12 +7,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.lvl1final.R
-import com.example.lvl1final.data.api.CountryDto
 import com.example.lvl1final.databinding.CountryGenreListItemBinding
+import com.example.lvl1final.domain.models.movieimpl.CountryImpl
 
 class CountryListAdapter(
-    private val setCountryTempValues: (countryDto: CountryDto) -> Unit
-) : ListAdapter<CountryDto, CountryViewHolder>(CountryDiffUtilCallback()) {
+    private val setCountryTempValues: (country: CountryImpl) -> Unit
+) : ListAdapter<CountryImpl, CountryViewHolder>(CountryDiffUtilCallback()) {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CountryViewHolder {
         val binding =
             CountryGenreListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -40,11 +40,11 @@ class CountryListAdapter(
     }
 }
 
-class CountryDiffUtilCallback : DiffUtil.ItemCallback<CountryDto>() {
-    override fun areItemsTheSame(oldItem: CountryDto, newItem: CountryDto): Boolean =
+class CountryDiffUtilCallback : DiffUtil.ItemCallback<CountryImpl>() {
+    override fun areItemsTheSame(oldItem: CountryImpl, newItem: CountryImpl): Boolean =
         oldItem.id == newItem.id
 
-    override fun areContentsTheSame(oldItem: CountryDto, newItem: CountryDto): Boolean =
+    override fun areContentsTheSame(oldItem: CountryImpl, newItem: CountryImpl): Boolean =
         oldItem == newItem
 }
 
